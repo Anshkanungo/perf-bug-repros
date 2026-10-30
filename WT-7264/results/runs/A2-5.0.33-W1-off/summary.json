@@ -1,0 +1,135 @@
+{
+ "label": "A2-5.0.33-W1-off",
+ "workload": "bruce",
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "prefix_search": false,
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824,
+ "capped": false,
+ "cap_s": 600,
+ "insert_phase_s": 247.6,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.1085,
+  "p90": 0.227,
+  "p99": 0.35902999999999996,
+  "max": 246.656
+ },
+ "longest_call_s": 246.656,
+ "stalled_calls": 3,
+ "stalled_threads": 3,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 6,
+   "batch": 0,
+   "start_s": 0.001,
+   "dur_s": 246.66,
+   "returned": true
+  },
+  {
+   "thread": 9,
+   "batch": 0,
+   "start_s": 0.005,
+   "dur_s": 206.99,
+   "returned": true
+  },
+  {
+   "thread": 7,
+   "batch": 0,
+   "start_s": 0.0,
+   "dur_s": 197.84,
+   "returned": true
+  }
+ ],
+ "thread_end_s": {
+  "median": 6.819,
+  "max": 247.598
+ },
+ "straggler_gap_s": 240.78,
+ "first_call_s": {
+  "median": 0.14550000000000002,
+  "max": 246.656
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 689428808.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 282.0,
+  "forced_evict": 323.0,
+  "pages_read": 2174.0,
+  "search_near": 693428812.0,
+  "next": 693632520.0,
+  "prev": 693428813.0,
+  "skip_next": 515988853.0,
+  "skip_prev": 282031851.0,
+  "prefix_exits": 0.0,
+  "inserts": 2000000.0,
+  "ckpts": 4.0
+ },
+ "hs_misses": 689428808.0,
+ "hs_misses_stall_share": 0.9937179721100369,
+ "entries_skipped": 798020704.0,
+ "checkpoints": {
+  "checkpoints_completed": 4.0,
+  "seconds_with_checkpoint_running": 0,
+  "checkpoint_running_during_stalls": false,
+  "last_checkpoint_ms_max": 116.0
+ },
+ "alone_window": {
+  "window_s": [
+   8.5,
+   246.7
+  ],
+  "conn_threads_ge90_median": 3.0,
+  "mongod_cpu_cores_median": 3.0
+ },
+ "docker": {
+  "other_cpu_median_pct": 8.16,
+  "other_cpu_peak_pct": 636.13,
+  "other_samples": 250,
+  "mongod_cpu_peak_pct": 837.83
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 130.08,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "AC Power",
+  "end": "AC Power",
+  "how": "pmset -g log",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": true,
+ "stall_type": "history-store walk",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 197821,
+   "ninserted": 1000,
+   "ctx": "conn20",
+   "bytesRead": 9939011,
+   "cacheWaitMicros": 751866
+  },
+  {
+   "ms": 206970,
+   "ninserted": 1000,
+   "ctx": "conn18",
+   "bytesRead": 15310367,
+   "cacheWaitMicros": 938272
+  },
+  {
+   "ms": 246638,
+   "ninserted": 1000,
+   "ctx": "conn24",
+   "bytesRead": 4031322,
+   "cacheWaitMicros": 886463
+  }
+ ]
+}

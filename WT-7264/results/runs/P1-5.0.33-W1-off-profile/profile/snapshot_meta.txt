@@ -1,0 +1,11 @@
+pid: 7
+mode: stall
+busy_s: 2.0
+result: captured
+frozen_with_sigstop: True
+trigger_epoch_s: 1793157733.420138
+trigger_s_after_script_start: 17.22
+trigger: {"mode": "stall", "spinning_threads": {"216": "conn13"}, "conn_threads_using_30pct_cpu": 2, "cpu_fraction_last_1s": {"215": 1.0, "216": 1.0}}
+freeze_latency_ms: 0.16
+attach_done_ms_after_trigger: 112.7
+process_paused_ms: 147.9

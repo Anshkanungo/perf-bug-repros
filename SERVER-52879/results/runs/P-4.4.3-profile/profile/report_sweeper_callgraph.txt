@@ -1,0 +1,137 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+# comm: WTIdleS.Sweeper
+#
+# Total Lost Samples: 0
+#
+# Samples: 57  of event 'cpu-clock'
+# Event count (approx.): 57057057
+#
+# Overhead  Shared Object  Symbol                                       
+# ........  .............  .............................................
+#
+    36.84%  mongod         [.] __wt_cursor_reopen
+            |
+            ---__wt_cursor_reopen
+               __curfile_reopen
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+    17.54%  mongod         [.] __wt_readlock
+            |
+            ---__wt_readlock
+               __wt_session_lock_dhandle
+               __curfile_reopen
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+    14.04%  mongod         [.] tc_deletearray_aligned_nothrow
+            |
+            ---tc_deletearray_aligned_nothrow
+               __wt_cursor_close
+               __curfile_close
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+     7.02%  mongod         [.] __session_discard_dhandle
+            |
+            ---__session_discard_dhandle
+               __wt_session_close_cache
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+     5.26%  mongod         [.] __wt_cursor_close
+            |
+            ---__wt_cursor_close
+               __curfile_close
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+     5.26%  mongod         [.] __wt_readunlock
+            |
+            ---__wt_readunlock
+               __wt_session_release_dhandle
+               __curfile_close
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+     5.26%  mongod         [.] __wt_session_release_dhandle
+            |
+            ---__wt_session_release_dhandle
+               __curfile_close
+               __session_close_cursors.isra.7
+               __session_close_cached_cursors
+               __wt_session_close_internal
+               __session_close
+               mongo::WiredTigerSession::~WiredTigerSession
+               mongo::WiredTigerSessionCache::closeExpiredIdleSessions
+               mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run
+               mongo::BackgroundJob::jobBody
+               std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run
+               execute_native_thread_routine
+               0xffffa15f8088
+               0xffffa1567ffc
+
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

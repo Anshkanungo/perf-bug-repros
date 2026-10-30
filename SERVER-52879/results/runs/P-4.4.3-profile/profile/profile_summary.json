@@ -1,0 +1,318 @@
+{
+ "oncpu": {
+  "samples_total": 52285,
+  "samples_by_thread": [
+   [
+    "mongod",
+    26524
+   ],
+   [
+    "conn*",
+    21834
+   ],
+   [
+    "WTCheck.tThread",
+    3451
+   ],
+   [
+    "WTJourn.Flusher",
+    158
+   ],
+   [
+    "ftdc",
+    153
+   ],
+   [
+    "Backgro.kSource",
+    97
+   ],
+   [
+    "WTIdleS.Sweeper",
+    57
+   ],
+   [
+    "Periodi.kRunner",
+    5
+   ],
+   [
+    "TTLMonitor",
+    2
+   ],
+   [
+    "Timesta.Monitor",
+    2
+   ],
+   [
+    "FlowCon.fresher",
+    1
+   ],
+   [
+    "decreas.ressure",
+    1
+   ]
+  ],
+  "sweeper_samples": 57,
+  "sweep_samples": 57,
+  "focus_inclusive_pct": {
+   "mongo::WiredTigerSessionCache::closeExpiredIdleSessions": 100.0,
+   "mongo::WiredTigerSession::~WiredTigerSession": 100.0,
+   "__session_close": 100.0,
+   "__session_close_cached_cursors": 91.2,
+   "__wt_cursor_close": 21.1,
+   "__curfile_close": 36.8,
+   "__wt_session_close_cache": 8.8,
+   "__session_discard_dhandle": 8.8
+  },
+  "leaf_top": [
+   [
+    "__wt_cursor_reopen",
+    36.8
+   ],
+   [
+    "__wt_readlock",
+    17.5
+   ],
+   [
+    "tc_deletearray_aligned_nothrow",
+    14.0
+   ],
+   [
+    "__session_discard_dhandle",
+    7.0
+   ],
+   [
+    "__wt_readunlock",
+    5.3
+   ],
+   [
+    "__wt_session_release_dhandle",
+    5.3
+   ],
+   [
+    "__wt_cursor_close",
+    5.3
+   ],
+   [
+    "__curfile_close",
+    3.5
+   ],
+   [
+    "tcmalloc::CentralFreeList::ReleaseToSpans",
+    3.5
+   ],
+   [
+    "__wt_btcur_close",
+    1.8
+   ]
+  ],
+  "stacks_top": [
+   [
+    "__wt_cursor_reopen <- __curfile_reopen <- __session_close_cursors.isra.7 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    21
+   ],
+   [
+    "__wt_readlock <- __wt_session_lock_dhandle <- __curfile_reopen <- __session_close_cursors.isra.7 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    10
+   ],
+   [
+    "tc_deletearray_aligned_nothrow <- __wt_cursor_close <- __curfile_close <- __session_close_cursors.isra.7 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    8
+   ],
+   [
+    "__session_discard_dhandle <- __wt_session_close_cache <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    4
+   ],
+   [
+    "__wt_readunlock <- __wt_session_release_dhandle <- __curfile_close <- __session_close_cursors.isra.7 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    3
+   ]
+  ],
+  "windows": [
+   {
+    "start": 7943.089177,
+    "end": 7943.145235,
+    "dur_ms": 57.1,
+    "samples": 57,
+    "start_epoch": 1793148328.6132,
+    "end_epoch": 1793148328.6693
+   }
+  ]
+ },
+ "offcpu": {
+  "switch_events": 238560,
+  "wakeup_events": 24652,
+  "waits": 231715,
+  "waits_exact": 51,
+  "during_sweeps": [
+   {
+    "category": "condition variable wait",
+    "waits": 67,
+    "threads": 4,
+    "total_ms": 21285.6,
+    "max_ms": 10003.2,
+    "exact": 0
+   },
+   {
+    "category": "network recv (idle connection)",
+    "waits": 63,
+    "threads": 63,
+    "total_ms": 6648.7,
+    "max_ms": 109.7,
+    "exact": 0
+   },
+   {
+    "category": "mutex wait in WiredTigerSessionCache::getSession",
+    "waits": 57,
+    "threads": 57,
+    "total_ms": 1890.9,
+    "max_ms": 57.0,
+    "exact": 7
+   }
+  ],
+  "all": [
+   {
+    "category": "network recv (idle connection)",
+    "waits": 94842,
+    "threads": 102,
+    "total_ms": 10178055.7,
+    "max_ms": 10013.6,
+    "exact": 0
+   },
+   {
+    "category": "condition variable wait",
+    "waits": 67385,
+    "threads": 13,
+    "total_ms": 1830130.2,
+    "max_ms": 60003.0,
+    "exact": 26
+   },
+   {
+    "category": "sleep",
+    "waits": 25,
+    "threads": 2,
+    "total_ms": 156009.1,
+    "max_ms": 60000.4,
+    "exact": 0
+   },
+   {
+    "category": "poll/epoll",
+    "waits": 901,
+    "threads": 15,
+    "total_ms": 91372.4,
+    "max_ms": 9910.1,
+    "exact": 1
+   },
+   {
+    "category": "fsync/IO",
+    "waits": 65087,
+    "threads": 2,
+    "total_ms": 16791.4,
+    "max_ms": 421.2,
+    "exact": 4
+   },
+   {
+    "category": "mutex wait in WiredTigerSessionCache::getSession",
+    "waits": 71,
+    "threads": 64,
+    "total_ms": 1897.6,
+    "max_ms": 57.0,
+    "exact": 7
+   },
+   {
+    "category": "IO",
+    "waits": 751,
+    "threads": 3,
+    "total_ms": 1194.4,
+    "max_ms": 13.4,
+    "exact": 1
+   },
+   {
+    "category": "other mutex wait",
+    "waits": 2112,
+    "threads": 105,
+    "total_ms": 940.6,
+    "max_ms": 75.5,
+    "exact": 11
+   },
+   {
+    "category": "other",
+    "waits": 541,
+    "threads": 72,
+    "total_ms": 563.1,
+    "max_ms": 50.8,
+    "exact": 1
+   }
+  ],
+  "per_window": [
+   {
+    "threads_blocked_on_session_cache": 57,
+    "max_wait_ms": 57.0,
+    "exact_wakeups": 7
+   }
+  ],
+  "example_blocked": {
+   "wait_ms": 57.0,
+   "thread": "conn14",
+   "stack_leaf_first": [
+    "__schedule",
+    "__schedule",
+    "schedule",
+    "futex_do_wait",
+    "__futex_wait",
+    "futex_wait",
+    "do_futex",
+    "__arm64_sys_futex",
+    "invoke_syscall.constprop.0",
+    "do_el0_svc",
+    "el0_svc",
+    "el0t_64_sync_handler",
+    "el0t_64_sync",
+    "__lll_lock_wait",
+    "__pthread_mutex_lock",
+    "mongo::latch_detail::Mutex::lock",
+    "mongo::WiredTigerSessionCache::getSession",
+    "mongo::WiredTigerRecoveryUnit::_ensureSession",
+    "mongo::WiredTigerRecoveryUnit::_txnOpen",
+    "mongo::WiredTigerRecoveryUnit::getSession",
+    "mongo::WiredTigerCursor::WiredTigerCursor",
+    "mongo::WiredTigerRecordStore::_insertRecords",
+    "mongo::WiredTigerRecordStore::insertRecords",
+    "mongo::CollectionImpl::_insertDocuments",
+    "mongo::CollectionImpl::insertDocuments",
+    "mongo::(anonymous namespace)::insertDocuments",
+    "mongo::(anonymous namespace)::insertBatchAndHandleErrors(mongo::OperationContext*, mongo::write_ops::Insert const&, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> >&, mongo::(anonymous namespace)::LastOpFixer*, mongo::WriteResult*, bool)::{lambda()#4}::operator()",
+    "mongo::performInserts",
+    "mongo::(anonymous namespace)::CmdInsert::Invocation::runImpl",
+    "mongo::(anonymous namespace)::WriteCommand::InvocationBase::run",
+    "mongo::CommandHelpers::runCommandInvocation",
+    "mongo::(anonymous namespace)::runCommandImpl",
+    "mongo::(anonymous namespace)::execCommandDatabase",
+    "mongo::(anonymous namespace)::receivedCommands",
+    "mongo::ServiceEntryPointCommon::handleRequest",
+    "mongo::ServiceEntryPointMongod::handleRequest",
+    "mongo::ServiceStateMachine::_processMessage",
+    "mongo::ServiceStateMachine::_runNextInGuard",
+    "std::_Function_handler<void",
+    "mongo::transport::ServiceExecutorSynchronous::schedule",
+    "mongo::ServiceStateMachine::_scheduleNextWithGuard",
+    "mongo::ServiceStateMachine::_sourceCallback",
+    "mongo::future_details::call<mongo::ServiceStateMachine::_sourceMessage(mongo::ServiceStateMachine::ThreadGuard)::{lambda(mongo::StatusWith<mongo::Message>)#2}&, mongo::StatusWith<mongo::Message> >",
+    "mongo::ServiceStateMachine::_sourceMessage",
+    "mongo::ServiceStateMachine::_runNextInGuard",
+    "std::_Function_handler<void",
+    "std::_Function_handler<void",
+    "std::_Function_handler<void",
+    "mongo::(anonymous namespace)::runFunc",
+    "start_thread"
+   ],
+   "exact": false
+  }
+ },
+ "client": [
+  {
+   "ops_overlapping": 60,
+   "ops_ge_10ms": 53,
+   "max_latency_ms": 57.0
+  }
+ ]
+}

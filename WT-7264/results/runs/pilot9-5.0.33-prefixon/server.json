@@ -1,0 +1,56 @@
+{
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "wiredTigerVersion": null,
+ "allocator": "tcmalloc",
+ "buildEnvironment": {
+  "distarch": "aarch64",
+  "target_arch": "aarch64",
+  "target_os": "linux",
+  "cc": "/opt/mongodbtoolchain/v3/bin/gcc: gcc (GCC) 8.5.0",
+  "ccflags": "-Werror -include mongo/platform/basic.h -ffp-contract=off -fasynchronous-unwind-tables -ggdb -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -fno-omit-frame-pointer -fno-strict-aliasing -O2 -march=armv8.2-a -mtune=generic -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -Wa,--nocompress-debug-sections -moutline-atomics"
+ },
+ "debug": false,
+ "parameters": {
+  "wiredTigerPrefixSearchForUniqueIndexes": true,
+  "internalInsertMaxBatchSize": 64,
+  "wiredTigerCursorCacheSize": -100,
+  "wiredTigerSessionCloseIdleTimeSecs": 300
+ },
+ "runtime_setParameter": {},
+ "wt_cache_max_bytes": 1073741824,
+ "argv": [
+  "mongod",
+  "--bind_ip_all",
+  "--wiredTigerCacheSizeGB",
+  "1",
+  "--setParameter",
+  "wiredTigerPrefixSearchForUniqueIndexes=true"
+ ],
+ "parsed": {
+  "net": {
+   "bindIp": "*"
+  },
+  "setParameter": {
+   "wiredTigerPrefixSearchForUniqueIndexes": "true"
+  },
+  "storage": {
+   "wiredTiger": {
+    "engineConfig": {
+     "cacheSizeGB": 1.0
+    }
+   }
+  }
+ },
+ "host": {
+  "os": {
+   "type": "Linux",
+   "name": "Ubuntu",
+   "version": "20.04"
+  },
+  "numCores": 10,
+  "memSizeMB": 7934,
+  "memLimitMB": 3072,
+  "cpuArch": "aarch64"
+ }
+}

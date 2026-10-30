@@ -1,0 +1,15 @@
+# Bulky raw data stays local. Summaries, per-second CSVs, plots, folded stacks, flame graphs and
+# profile summaries are small and are meant to be committed.
+**/results/runs/*/raw/
+**/results/**/*.perf.data
+**/results/**/*.perf.data.old
+**/results/**/*.perf.script
+**/results/**/*.perf.script.gz
+**/results/**/diagnostic.data/
+**/results/**/oncpu.folded
+**/.cache/
+
+# OS / editor noise
+.DS_Store
+__pycache__/
+*.pyc

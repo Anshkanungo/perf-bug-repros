@@ -1,0 +1,111 @@
+diff --git a/jstests/noPassthrough/profile_operation_metrics.js b/jstests/noPassthrough/profile_operation_metrics.js
+index e527ec3e24e37..e3506d3f43990 100644
+--- a/jstests/noPassthrough/profile_operation_metrics.js
++++ b/jstests/noPassthrough/profile_operation_metrics.js
+@@ -689,12 +689,10 @@ const operations = [
+         },
+         profileFilter: {op: 'insert', 'command.insert': collName},
+         profileAssert: (db, profileDoc) => {
+-            // Insert should not perform any reads.
+             assert.eq(profileDoc.docBytesRead, 0);
+             assert.eq(profileDoc.docUnitsRead, 0);
+-            // Reads the index entry for 'a' to determine uniqueness.
+-            assert.eq(profileDoc.idxEntryBytesRead, 6);
+-            assert.eq(profileDoc.idxEntryUnitsRead, 1);
++            assert.eq(profileDoc.idxEntryBytesRead, 0);
++            assert.eq(profileDoc.idxEntryUnitsRead, 0);
+             assert.eq(profileDoc.cursorSeeks, 1);
+             assert.eq(profileDoc.docBytesWritten, 29);
+             assert.eq(profileDoc.docUnitsWritten, 1);
+@@ -760,9 +758,9 @@ const operations = [
+                 assert.gte(profileDoc.docUnitsRead, 1);
+                 assert.gte(profileDoc.cursorSeeks, 4);
+             }
+-            // Reads index entries on '_id' for the lookup and 'a' to ensure uniqueness.
+-            assert.eq(profileDoc.idxEntryBytesRead, 9);
+-            assert.eq(profileDoc.idxEntryUnitsRead, 2);
++            // Reads index entries on '_id' for the lookup.
++            assert.eq(profileDoc.idxEntryBytesRead, 3);
++            assert.eq(profileDoc.idxEntryUnitsRead, 1);
+             // This out-of-place update should perform a direct insert because it is not large
+             // enough to qualify for the in-place update path.
+             assert.eq(profileDoc.docBytesWritten, 29);
+@@ -800,9 +798,9 @@ const operations = [
+                 assert.gte(profileDoc.docUnitsRead, 9);
+                 assert.gte(profileDoc.cursorSeeks, 4);
+             }
+-            // Reads index entries on '_id' for the lookup and 'a' to ensure uniqueness.
+-            assert.eq(profileDoc.idxEntryBytesRead, 10);
+-            assert.eq(profileDoc.idxEntryUnitsRead, 2);
++            // Reads index entries on '_id' to ensure uniqueness.
++            assert.eq(profileDoc.idxEntryBytesRead, 4);
++            assert.eq(profileDoc.idxEntryUnitsRead, 1);
+             if (FixtureHelpers.isReplSet(db)) {
+                 // When WT_MODIFY is used on a replicated collection fewer bytes are written per the
+                 // comment about WT_MODIFY above.
+diff --git a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+index 6e7f2f2dfecb8..b2d788ff938f3 100644
+--- a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
++++ b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+@@ -51,6 +51,7 @@
+ #include "mongo/db/storage/wiredtiger/wiredtiger_cursor_helpers.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_customization_hooks.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_global_options.h"
++#include "mongo/db/storage/wiredtiger/wiredtiger_parameters_gen.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_record_store.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_session_cache.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_util.h"
+@@ -1413,13 +1414,13 @@ bool WiredTigerIndexUnique::_keyExists(OperationContext* opCtx,
+     int cmp;
+     int ret = wiredTigerPrepareConflictRetry(opCtx, [&] { return c->search_near(c, &cmp); });
+ 
++    auto& metricsCollector = ResourceConsumption::MetricsCollector::get(opCtx);
++    metricsCollector.incrementOneCursorSeek();
++
+     if (ret == WT_NOTFOUND)
+         return false;
+     invariantWTOK(ret);
+ 
+-    auto& metricsCollector = ResourceConsumption::MetricsCollector::get(opCtx);
+-    metricsCollector.incrementOneCursorSeek();
+-
+     if (cmp == 0)
+         return true;
+ 
+@@ -1572,7 +1573,19 @@ StatusWith<bool> WiredTigerIndexUnique::_insert(OperationContext* opCtx,
+         invariantWTOK(ret);
+ 
+         // Second phase looks up for existence of key to avoid insertion of duplicate key
+-        if (_keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId)) {
++        // The usage of 'prefix_search=true' enables an optimization that allows this search to
++        // return more quickly. See SERVER-56509.
++        auto prefixSearch = gWiredTigerPrefixSearchForUniqueIndexes.load();
++        if (prefixSearch) {
++            c->reconfigure(c, "prefix_search=true");
++        }
++        ON_BLOCK_EXIT([&] {
++            if (prefixSearch) {
++                c->reconfigure(c, "prefix_search=false");
++            }
++        });
++        auto keyExists = _keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId);
++        if (keyExists) {
+             auto key = KeyString::toBson(
+                 keyString.getBuffer(), sizeWithoutRecordId, _ordering, keyString.getTypeBits());
+             auto entry = _desc->getEntry();
+diff --git a/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl b/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
+index 7f0a5f85086be..dd94daf63af77 100644
+--- a/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
++++ b/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
+@@ -164,3 +164,11 @@ server_parameters:
+       cpp_vartype: 'bool'
+       cpp_varname: gWiredTigerSkipTableLoggingChecksOnStartup
+       default: false
++
++    wiredTigerPrefixSearchForUniqueIndexes:
++      description: >-
++        Uses the prefix_search feature when checking for duplicate keys on unique indexes
++      set_at: [ startup, runtime ]
++      cpp_vartype: 'AtomicWord<bool>'
++      cpp_varname: gWiredTigerPrefixSearchForUniqueIndexes
++      default: true

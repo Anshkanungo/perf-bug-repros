@@ -1,0 +1,374 @@
+{
+ "label": "RS2-4.4.1-W1",
+ "workload": "bruce",
+ "version": "4.4.1",
+ "gitVersion": "ad91a93a5a31e175f5cbf8c69561e788bbc55ce1",
+ "prefix_search": "absent",
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824.0,
+ "capped": false,
+ "cap_s": 300,
+ "insert_phase_s": 12.39,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.156,
+  "p90": 0.23210000000000003,
+  "p99": 2.1652099999999996,
+  "max": 5.281
+ },
+ "longest_call_s": 5.281,
+ "stalled_calls": 2,
+ "stalled_threads": 2,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 11,
+   "batch": 0,
+   "start_s": 0.005,
+   "dur_s": 5.28,
+   "returned": true
+  },
+  {
+   "thread": 14,
+   "batch": 0,
+   "start_s": 0.008,
+   "dur_s": 3.02,
+   "returned": true
+  }
+ ],
+ "thread_end_s": {
+  "median": 12.213000000000001,
+  "max": 12.392
+ },
+ "straggler_gap_s": 0.18,
+ "first_call_s": {
+  "median": 0.514,
+  "max": 5.281
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 364360.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 12002.0,
+  "forced_evict": 388.0,
+  "pages_read": 57.0,
+  "search_near": 4417938.0,
+  "next": 4461598.0,
+  "prev": 4444038.0,
+  "skip_next": 50099659.0,
+  "skip_prev": 45062245.0,
+  "prefix_exits": null,
+  "inserts": 2000000.0,
+  "ckpts": 0.0
+ },
+ "hs_misses": 364360.0,
+ "hs_misses_stall_share": 0.26710396311340434,
+ "entries_skipped": 95161904.0,
+ "checkpoints": {
+  "checkpoints_completed": 0.0,
+  "seconds_with_checkpoint_running": 0,
+  "checkpoint_running_during_stalls": false,
+  "last_checkpoint_ms_max": 0.0
+ },
+ "alone_window": null,
+ "docker": {
+  "other_cpu_median_pct": 13.0,
+  "other_cpu_peak_pct": 175.24,
+  "other_samples": 15,
+  "mongod_cpu_peak_pct": 1016.02
+ },
+ "noisy": false,
+ "other_cpu_peak_first10s_pct": 175.24,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "Battery Power",
+  "end": "Battery Power",
+  "low_power_mode_start": 1,
+  "how": "recorded by run.sh",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": false,
+ "stall_type": "in-memory walk",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 1811,
+   "ninserted": 1000,
+   "ctx": "conn23",
+   "bytesRead": null,
+   "cacheWaitMicros": 1620469
+  },
+  {
+   "ms": 1959,
+   "ninserted": 1000,
+   "ctx": "conn15",
+   "bytesRead": null,
+   "cacheWaitMicros": 1476876
+  },
+  {
+   "ms": 1827,
+   "ninserted": 1000,
+   "ctx": "conn11",
+   "bytesRead": null,
+   "cacheWaitMicros": 1353637
+  },
+  {
+   "ms": 1973,
+   "ninserted": 1000,
+   "ctx": "conn14",
+   "bytesRead": null,
+   "cacheWaitMicros": 1678340
+  },
+  {
+   "ms": 1807,
+   "ninserted": 1000,
+   "ctx": "conn8",
+   "bytesRead": null,
+   "cacheWaitMicros": 1615240
+  },
+  {
+   "ms": 1786,
+   "ninserted": 1000,
+   "ctx": "conn25",
+   "bytesRead": null,
+   "cacheWaitMicros": 1716115
+  },
+  {
+   "ms": 1800,
+   "ninserted": 1000,
+   "ctx": "conn10",
+   "bytesRead": null,
+   "cacheWaitMicros": 1584497
+  },
+  {
+   "ms": 1493,
+   "ninserted": 1000,
+   "ctx": "conn21",
+   "bytesRead": null,
+   "cacheWaitMicros": 1379607
+  },
+  {
+   "ms": 1912,
+   "ninserted": 1000,
+   "ctx": "conn27",
+   "bytesRead": null,
+   "cacheWaitMicros": 1664921
+  },
+  {
+   "ms": 1800,
+   "ninserted": 1000,
+   "ctx": "conn9",
+   "bytesRead": null,
+   "cacheWaitMicros": 1561558
+  },
+  {
+   "ms": 1846,
+   "ninserted": 1000,
+   "ctx": "conn18",
+   "bytesRead": null,
+   "cacheWaitMicros": 1678090
+  },
+  {
+   "ms": 1828,
+   "ninserted": 1000,
+   "ctx": "conn19",
+   "bytesRead": null,
+   "cacheWaitMicros": 1472379
+  },
+  {
+   "ms": 1786,
+   "ninserted": 1000,
+   "ctx": "conn26",
+   "bytesRead": null,
+   "cacheWaitMicros": 1591288
+  },
+  {
+   "ms": 1301,
+   "ninserted": 1000,
+   "ctx": "conn12",
+   "bytesRead": null,
+   "cacheWaitMicros": 1228978
+  },
+  {
+   "ms": 1852,
+   "ninserted": 1000,
+   "ctx": "conn16",
+   "bytesRead": null,
+   "cacheWaitMicros": 1710777
+  },
+  {
+   "ms": 1339,
+   "ninserted": 1000,
+   "ctx": "conn13",
+   "bytesRead": null,
+   "cacheWaitMicros": 1192629
+  },
+  {
+   "ms": 1894,
+   "ninserted": 1000,
+   "ctx": "conn20",
+   "bytesRead": null,
+   "cacheWaitMicros": 1720099
+  },
+  {
+   "ms": 1902,
+   "ninserted": 1000,
+   "ctx": "conn17",
+   "bytesRead": null,
+   "cacheWaitMicros": 1659785
+  },
+  {
+   "ms": 2878,
+   "ninserted": 1000,
+   "ctx": "conn24",
+   "bytesRead": 4635,
+   "cacheWaitMicros": 1050734
+  },
+  {
+   "ms": 2084,
+   "ninserted": 1000,
+   "ctx": "conn8",
+   "bytesRead": null,
+   "cacheWaitMicros": 1783910
+  },
+  {
+   "ms": 2025,
+   "ninserted": 1000,
+   "ctx": "conn12",
+   "bytesRead": null,
+   "cacheWaitMicros": 1801735
+  },
+  {
+   "ms": 2072,
+   "ninserted": 1000,
+   "ctx": "conn10",
+   "bytesRead": null,
+   "cacheWaitMicros": 1861080
+  },
+  {
+   "ms": 1974,
+   "ninserted": 1000,
+   "ctx": "conn25",
+   "bytesRead": null,
+   "cacheWaitMicros": 1890211
+  },
+  {
+   "ms": 2123,
+   "ninserted": 1000,
+   "ctx": "conn19",
+   "bytesRead": null,
+   "cacheWaitMicros": 1929900
+  },
+  {
+   "ms": 1791,
+   "ninserted": 1000,
+   "ctx": "conn24",
+   "bytesRead": null,
+   "cacheWaitMicros": 1652327
+  },
+  {
+   "ms": 1812,
+   "ninserted": 1000,
+   "ctx": "conn27",
+   "bytesRead": null,
+   "cacheWaitMicros": 1629203
+  },
+  {
+   "ms": 1556,
+   "ninserted": 1000,
+   "ctx": "conn18",
+   "bytesRead": null,
+   "cacheWaitMicros": 1421181
+  },
+  {
+   "ms": 2099,
+   "ninserted": 1000,
+   "ctx": "conn14",
+   "bytesRead": null,
+   "cacheWaitMicros": 1882063
+  },
+  {
+   "ms": 1562,
+   "ninserted": 1000,
+   "ctx": "conn15",
+   "bytesRead": null,
+   "cacheWaitMicros": 1431482
+  },
+  {
+   "ms": 2105,
+   "ninserted": 1000,
+   "ctx": "conn9",
+   "bytesRead": 9218,
+   "cacheWaitMicros": 1832670
+  },
+  {
+   "ms": 2065,
+   "ninserted": 1000,
+   "ctx": "conn13",
+   "bytesRead": null,
+   "cacheWaitMicros": 1820514
+  },
+  {
+   "ms": 1747,
+   "ninserted": 1000,
+   "ctx": "conn23",
+   "bytesRead": null,
+   "cacheWaitMicros": 1578471
+  },
+  {
+   "ms": 1727,
+   "ninserted": 1000,
+   "ctx": "conn17",
+   "bytesRead": null,
+   "cacheWaitMicros": 1467577
+  },
+  {
+   "ms": 1835,
+   "ninserted": 1000,
+   "ctx": "conn16",
+   "bytesRead": null,
+   "cacheWaitMicros": 1663337
+  },
+  {
+   "ms": 2061,
+   "ninserted": 1000,
+   "ctx": "conn21",
+   "bytesRead": null,
+   "cacheWaitMicros": 1781868
+  },
+  {
+   "ms": 1588,
+   "ninserted": 1000,
+   "ctx": "conn20",
+   "bytesRead": null,
+   "cacheWaitMicros": 1430371
+  },
+  {
+   "ms": 1617,
+   "ninserted": 1000,
+   "ctx": "conn26",
+   "bytesRead": null,
+   "cacheWaitMicros": 1389994
+  },
+  {
+   "ms": 1640,
+   "ninserted": 1000,
+   "ctx": "conn11",
+   "bytesRead": 5116,
+   "cacheWaitMicros": 1434633
+  },
+  {
+   "ms": 4676,
+   "ninserted": 1000,
+   "ctx": "conn22",
+   "bytesRead": 18238,
+   "cacheWaitMicros": 2879466
+  }
+ ]
+}

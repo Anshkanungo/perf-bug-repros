@@ -1,0 +1,23 @@
+{
+  "label": "B-4.4.4-shell-idle30",
+  "started_utc": "2026-10-28T00:16:47Z",
+  "mongod_image": "mongo:4.4.4",
+  "mongod_image_digest": "mongo@sha256:75a5f624bd6d14254e0d84c2833f576109672750aaf2bf01d61cb5ead44f4505",
+  "mongod_binary": "",
+  "target": "",
+  "topology": "standalone",
+  "driver": "shell",
+  "client_image": "mongo:4.4.3",
+  "client_image_digest": "mongo@sha256:6d8014d18ad1ad385e8ff572569ed5d750907db0ddf5cbcf04a43fd7371b7518",
+  "duration_s": 720,
+  "collections": 1000,
+  "indexes_per_collection": 10,
+  "threads": 100,
+  "idle_timeout_s": 30,
+  "cache_gb": 1,
+  "skip_setup": 0,
+  "extra_mongod_args": "",
+  "mongod_mem_limit": "4g",
+  "client_mem_limit": "3g",
+  "docker_host": "Docker Desktop 7.0.14-linuxkit aarch64 cpus=10 mem=8319504384"
+}

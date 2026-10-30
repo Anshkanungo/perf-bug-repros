@@ -1,0 +1,487 @@
+
+Thread 37 (LWP 216 "conn13"):
+#0  0x0000aaaaeb6702f0 in __wt_struct_packv ()
+#1  0x0000aaaaeb67297c in __wt_cursor_set_keyv ()
+#2  0x0000aaaaeb672e10 in __wt_cursor_set_key ()
+#3  0x0000aaaaeb775d4c in __curhs_set_key ()
+#4  0x0000aaaaeb79cfe4 in __wt_hs_find_upd ()
+#5  0x0000aaaaeb70aed0 in __wt_txn_read ()
+#6  0x0000aaaaeb70ddd0 in __wt_btcur_prev ()
+#7  0x0000aaaaeb7140dc in __wt_btcur_search_near ()
+#8  0x0000aaaaeb6682ec in __curfile_search_near ()
+#9  0x0000aaaaeb5f0898 in int mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#1}>(mongo::OperationContext*, mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#1}&&) ()
+#10 0x0000aaaaeb5f1470 in mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long) ()
+#11 0x0000aaaaeb5f1750 in mongo::WiredTigerIndexUnique::_insert(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool) ()
+#12 0x0000aaaaeb5ecbd0 in mongo::WiredTigerIndex::insert(mongo::OperationContext*, mongo::KeyString::Value const&, bool) ()
+#13 0x0000aaaaeca8b284 in mongo::AbstractIndexAccessMethod::insertKeys(mongo::OperationContext*, mongo::CollectionPtr const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, std::function<mongo::Status (mongo::KeyString::Value const&)>&&, long*) ()
+#14 0x0000aaaaeca8b474 in mongo::AbstractIndexAccessMethod::insertKeysAndUpdateMultikeyPaths(mongo::OperationContext*, mongo::CollectionPtr const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::small_vector<boost::container::flat_set<unsigned char, std::less<unsigned char>, boost::container::small_vector<unsigned char, 4ul, void, void> >, 4ul, void, void> const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, std::function<mongo::Status (mongo::KeyString::Value const&)>&&, long*) ()
+#15 0x0000aaaaec29f8c4 in mongo::IndexCatalogImpl::_indexKeys(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::small_vector<boost::container::flat_set<unsigned char, std::less<unsigned char>, boost::container::small_vector<unsigned char, 4ul, void, void> >, 4ul, void, void> const&, mongo::BSONObj const&, mongo::RecordId, mongo::InsertDeleteOptions const&, long*) const ()
+#16 0x0000aaaaec29fd20 in mongo::IndexCatalogImpl::_indexFilteredRecords(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#17 0x0000aaaaec2a01bc in mongo::IndexCatalogImpl::_indexRecords(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#18 0x0000aaaaec2a0378 in mongo::IndexCatalogImpl::indexRecords(mongo::OperationContext*, mongo::CollectionPtr const&, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#19 0x0000aaaaec27a1c0 in mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool) const ()
+#20 0x0000aaaaec27a5d0 in mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool) const ()
+#21 0x0000aaaaec0e02e8 in mongo::write_ops_exec::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::CollectionPtr const&, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool) ()
+#22 0x0000aaaaec0e5cc8 in mongo::write_ops_exec::performInserts(mongo::OperationContext*, mongo::write_ops::InsertCommandRequest const&, mongo::OperationSource const&) ()
+#23 0x0000aaaaec029b38 in mongo::(anonymous namespace)::CmdInsert::Invocation::typedRun(mongo::OperationContext*) ()
+#24 0x0000aaaaec02aa48 in mongo::TypedCommand<mongo::(anonymous namespace)::CmdInsert>::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*) ()
+#25 0x0000aaaaecb068cc in mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*) ()
+#26 0x0000aaaaecb0d32c in mongo::CommandHelpers::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>, mongo::transport::ServiceExecutor::ThreadingModel) ()
+#27 0x0000aaaaeb593370 in mongo::(anonymous namespace)::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>) ()
+#28 0x0000aaaaeb5a2944 in mongo::(anonymous namespace)::RunCommandImpl::_runCommand() ()
+#29 0x0000aaaaeb5a33cc in mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runCommandWithFailPoint() ()
+#30 0x0000aaaaeb5a3898 in mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runImpl() ()
+#31 0x0000aaaaeb597ed4 in mongo::(anonymous namespace)::RunCommandImpl::run() ()
+#32 0x0000aaaaeb59a1e0 in mongo::(anonymous namespace)::ExecCommandDatabase::_commandExec() ()
+#33 0x0000aaaaeb5a6af8 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}::operator()() ()
+#34 0x0000aaaaeb5a8e54 in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#35 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#36 0x0000aaaaeb5aaf20 in auto mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::generalImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}&&) ()
+#37 0x0000aaaaeb59d09c in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#38 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#39 0x0000aaaaeb5a78c0 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#40 0x0000aaaaeb5a81c0 in mongo::(anonymous namespace)::receivedCommands(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#41 0x0000aaaaeb5a8d74 in mongo::(anonymous namespace)::CommandOpRunner::run() ()
+#42 0x0000aaaaeb59f900 in mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, std::unique_ptr<mongo::ServiceEntryPointCommon::Hooks const, std::default_delete<mongo::ServiceEntryPointCommon::Hooks const> >) ()
+#43 0x0000aaaaeb58eda8 in mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&) ()
+#44 0x0000aaaaeb5d9978 in mongo::transport::ServiceStateMachine::Impl::processMessage() ()
+#45 0x0000aaaaeb5da040 in mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}>(mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}&&) &&::{lambda(mongo::future_details::FakeVoid&&)#1}::operator()(mongo::future_details::FakeVoid&&) const [clone .isra.723] ()
+#46 0x0000aaaaeb5dd5d0 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#47 0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#48 0x0000aaaaed49b904 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#49 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#50 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#51 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#52 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#53 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#54 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 36 (LWP 215 "conn12"):
+#0  0x0000aaaaeb7786e4 in __curhs_close ()
+#1  0x0000aaaaeb79d2a8 in __wt_hs_find_upd ()
+#2  0x0000aaaaeb7050a0 in __wt_txn_read ()
+#3  0x0000aaaaeb7081cc in __wt_btcur_next_prefix ()
+#4  0x0000aaaaeb6645d8 in __curfile_next ()
+#5  0x0000aaaaeb5f0c9c in int mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#2}>(mongo::OperationContext*, mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#2}&&) ()
+#6  0x0000aaaaeb5f1570 in mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long) ()
+#7  0x0000aaaaeb5f1750 in mongo::WiredTigerIndexUnique::_insert(mongo::OperationContext*, __wt_cursor*, mongo::KeyString::Value const&, bool) ()
+#8  0x0000aaaaeb5ecbd0 in mongo::WiredTigerIndex::insert(mongo::OperationContext*, mongo::KeyString::Value const&, bool) ()
+#9  0x0000aaaaeca8b284 in mongo::AbstractIndexAccessMethod::insertKeys(mongo::OperationContext*, mongo::CollectionPtr const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, std::function<mongo::Status (mongo::KeyString::Value const&)>&&, long*) ()
+#10 0x0000aaaaeca8b474 in mongo::AbstractIndexAccessMethod::insertKeysAndUpdateMultikeyPaths(mongo::OperationContext*, mongo::CollectionPtr const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::small_vector<boost::container::flat_set<unsigned char, std::less<unsigned char>, boost::container::small_vector<unsigned char, 4ul, void, void> >, 4ul, void, void> const&, mongo::RecordId const&, mongo::InsertDeleteOptions const&, std::function<mongo::Status (mongo::KeyString::Value const&)>&&, long*) ()
+#11 0x0000aaaaec29f8c4 in mongo::IndexCatalogImpl::_indexKeys(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::flat_set<mongo::KeyString::Value, std::less<mongo::KeyString::Value>, void> const&, boost::container::small_vector<boost::container::flat_set<unsigned char, std::less<unsigned char>, boost::container::small_vector<unsigned char, 4ul, void, void> >, 4ul, void, void> const&, mongo::BSONObj const&, mongo::RecordId, mongo::InsertDeleteOptions const&, long*) const ()
+#12 0x0000aaaaec29fd20 in mongo::IndexCatalogImpl::_indexFilteredRecords(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#13 0x0000aaaaec2a01bc in mongo::IndexCatalogImpl::_indexRecords(mongo::OperationContext*, mongo::CollectionPtr const&, mongo::IndexCatalogEntry const*, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#14 0x0000aaaaec2a0378 in mongo::IndexCatalogImpl::indexRecords(mongo::OperationContext*, mongo::CollectionPtr const&, std::vector<mongo::BsonRecord, std::allocator<mongo::BsonRecord> > const&, long*) const ()
+#15 0x0000aaaaec27a1c0 in mongo::CollectionImpl::_insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool) const ()
+#16 0x0000aaaaec27a5d0 in mongo::CollectionImpl::insertDocuments(mongo::OperationContext*, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement const*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, mongo::OpDebug*, bool) const ()
+#17 0x0000aaaaec0e02e8 in mongo::write_ops_exec::(anonymous namespace)::insertDocuments(mongo::OperationContext*, mongo::CollectionPtr const&, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, __gnu_cxx::__normal_iterator<mongo::InsertStatement*, std::vector<mongo::InsertStatement, std::allocator<mongo::InsertStatement> > >, bool) ()
+#18 0x0000aaaaec0e5cc8 in mongo::write_ops_exec::performInserts(mongo::OperationContext*, mongo::write_ops::InsertCommandRequest const&, mongo::OperationSource const&) ()
+#19 0x0000aaaaec029b38 in mongo::(anonymous namespace)::CmdInsert::Invocation::typedRun(mongo::OperationContext*) ()
+#20 0x0000aaaaec02aa48 in mongo::TypedCommand<mongo::(anonymous namespace)::CmdInsert>::InvocationBase::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*) ()
+#21 0x0000aaaaecb068cc in mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*) ()
+#22 0x0000aaaaecb0d32c in mongo::CommandHelpers::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>, mongo::transport::ServiceExecutor::ThreadingModel) ()
+#23 0x0000aaaaeb593370 in mongo::(anonymous namespace)::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>) ()
+#24 0x0000aaaaeb5a2944 in mongo::(anonymous namespace)::RunCommandImpl::_runCommand() ()
+#25 0x0000aaaaeb5a33cc in mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runCommandWithFailPoint() ()
+#26 0x0000aaaaeb5a3898 in mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runImpl() ()
+#27 0x0000aaaaeb597ed4 in mongo::(anonymous namespace)::RunCommandImpl::run() ()
+#28 0x0000aaaaeb59a1e0 in mongo::(anonymous namespace)::ExecCommandDatabase::_commandExec() ()
+#29 0x0000aaaaeb5a6af8 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}::operator()() ()
+#30 0x0000aaaaeb5a8e54 in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#31 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#32 0x0000aaaaeb5aaf20 in auto mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::generalImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}&&) ()
+#33 0x0000aaaaeb59d09c in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#34 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#35 0x0000aaaaeb5a78c0 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#36 0x0000aaaaeb5a81c0 in mongo::(anonymous namespace)::receivedCommands(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#37 0x0000aaaaeb5a8d74 in mongo::(anonymous namespace)::CommandOpRunner::run() ()
+#38 0x0000aaaaeb59f900 in mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, std::unique_ptr<mongo::ServiceEntryPointCommon::Hooks const, std::default_delete<mongo::ServiceEntryPointCommon::Hooks const> >) ()
+#39 0x0000aaaaeb58eda8 in mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&) ()
+#40 0x0000aaaaeb5d9978 in mongo::transport::ServiceStateMachine::Impl::processMessage() ()
+#41 0x0000aaaaeb5da040 in mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}>(mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}&&) &&::{lambda(mongo::future_details::FakeVoid&&)#1}::operator()(mongo::future_details::FakeVoid&&) const [clone .isra.723] ()
+#42 0x0000aaaaeb5dd5d0 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#43 0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#44 0x0000aaaaed49b904 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#45 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#46 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#47 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#48 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#49 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#50 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 35 (LWP 210 "conn7"):
+#0  0x0000ffffa82635cc in recvmsg () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaed9492b4 in asio::detail::socket_ops::recv(int, iovec*, unsigned long, int, std::error_code&) ()
+#2  0x0000aaaaed949390 in asio::detail::socket_ops::sync_recv(int, unsigned char, iovec*, unsigned long, int, bool, std::error_code&) ()
+#3  0x0000aaaaed4d3cc4 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::opportunisticRead<asio::basic_stream_socket<asio::generic::stream_protocol>, asio::mutable_buffers_1>(asio::basic_stream_socket<asio::generic::stream_protocol>&, asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#4  0x0000aaaaed4dfd44 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::read<asio::mutable_buffers_1>(asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#5  0x0000aaaaed4cb788 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessageImpl(std::shared_ptr<mongo::Baton> const&) ()
+#6  0x0000aaaaed4cbb08 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessage() ()
+#7  0x0000aaaaeb5dac70 in mongo::transport::ServiceStateMachine::Impl::sourceMessage() ()
+#8  0x0000aaaaeb5dd5a4 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#9  0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#10 0x0000aaaaed49b904 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#11 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#12 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#13 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#14 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#15 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#16 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 34 (LWP 69 "conn6"):
+#0  0x0000ffffa82635cc in recvmsg () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaed9492b4 in asio::detail::socket_ops::recv(int, iovec*, unsigned long, int, std::error_code&) ()
+#2  0x0000aaaaed949390 in asio::detail::socket_ops::sync_recv(int, unsigned char, iovec*, unsigned long, int, bool, std::error_code&) ()
+#3  0x0000aaaaed4d3cc4 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::opportunisticRead<asio::basic_stream_socket<asio::generic::stream_protocol>, asio::mutable_buffers_1>(asio::basic_stream_socket<asio::generic::stream_protocol>&, asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#4  0x0000aaaaed4dfd44 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::read<asio::mutable_buffers_1>(asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#5  0x0000aaaaed4cb788 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessageImpl(std::shared_ptr<mongo::Baton> const&) ()
+#6  0x0000aaaaed4cbb08 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessage() ()
+#7  0x0000aaaaeb5dac70 in mongo::transport::ServiceStateMachine::Impl::sourceMessage() ()
+#8  0x0000aaaaeb5dd5a4 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#9  0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#10 0x0000aaaaed49b904 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#11 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#12 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#13 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#14 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#15 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#16 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 33 (LWP 68 "conn5"):
+#0  0x0000ffffa82635cc in recvmsg () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaed9492b4 in asio::detail::socket_ops::recv(int, iovec*, unsigned long, int, std::error_code&) ()
+#2  0x0000aaaaed949390 in asio::detail::socket_ops::sync_recv(int, unsigned char, iovec*, unsigned long, int, bool, std::error_code&) ()
+#3  0x0000aaaaed4d3cc4 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::opportunisticRead<asio::basic_stream_socket<asio::generic::stream_protocol>, asio::mutable_buffers_1>(asio::basic_stream_socket<asio::generic::stream_protocol>&, asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#4  0x0000aaaaed4dfd44 in mongo::Future<void> mongo::transport::TransportLayerASIO::ASIOSession::read<asio::mutable_buffers_1>(asio::mutable_buffers_1 const&, std::shared_ptr<mongo::Baton> const&) ()
+#5  0x0000aaaaed4cb788 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessageImpl(std::shared_ptr<mongo::Baton> const&) ()
+#6  0x0000aaaaed4cbb08 in mongo::transport::TransportLayerASIO::ASIOSession::sourceMessage() ()
+#7  0x0000aaaaeb5dac70 in mongo::transport::ServiceStateMachine::Impl::sourceMessage() ()
+#8  0x0000aaaaeb5dd5a4 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#9  0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#10 0x0000aaaaed49b904 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr<mongo::transport::Session> const&, mongo::unique_function<void (mongo::Status)>)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#11 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#12 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#13 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#14 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#15 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#16 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 32 (LWP 66 "conn4"):
+#0  0x0000ffffa81a50d8 in poll () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000aaaaed4b6a2c in mongo::transport::TransportLayerASIO::BatonASIO::run(mongo::ClockSource*) ()
+#2  0x0000aaaaed4ba578 in mongo::transport::TransportLayerASIO::BatonASIO::run_until(mongo::ClockSource*, mongo::Date_t) ()
+#3  0x0000aaaaedae1234 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#4  0x0000aaaaedad5074 in mongo::OperationContext::waitForConditionOrInterruptNoAssertUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t) ()
+#5  0x0000aaaaeb565e28 in mongo::Interruptible::waitForConditionOrInterruptUntil<std::unique_lock<std::mutex>, mongo::Interruptible::sleepFor(mongo::Duration<std::ratio<1l, 1000l> >)::{lambda()#1}>(mongo::stdx::condition_variable&, std::unique_lock<std::mutex>&, mongo::Date_t, mongo::Interruptible::sleepFor(mongo::Duration<std::ratio<1l, 1000l> >)::{lambda()#1})::{lambda(mongo::Date_t, mongo::Interruptible::WakeSpeed)#3}::operator()(mongo::Date_t, mongo::Interruptible::WakeSpeed) const ()
+#6  0x0000aaaaeb568e18 in mongo::Interruptible::sleepFor(mongo::Duration<std::ratio<1l, 1000l> >) ()
+#7  0x0000aaaaeb849a7c in mongo::repl::(anonymous namespace)::appendReplicationInfo(mongo::OperationContext*, mongo::BSONObjBuilder*, bool, bool, boost::optional<mongo::TopologyVersion>, boost::optional<long>) [clone .isra.1091] ()
+#8  0x0000aaaaeb84a864 in mongo::repl::(anonymous namespace)::CmdHello::runWithReplyBuilder(mongo::OperationContext*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, mongo::BSONObj const&, mongo::rpc::ReplyBuilderInterface*) ()
+#9  0x0000aaaaecb0e7ec in mongo::BasicCommandWithReplyBuilderInterface::Invocation::run(mongo::OperationContext*, mongo::rpc::ReplyBuilderInterface*) ()
+#10 0x0000aaaaecb068cc in mongo::CommandHelpers::runCommandInvocation(mongo::OperationContext*, mongo::OpMsgRequest const&, mongo::CommandInvocation*, mongo::rpc::ReplyBuilderInterface*) ()
+#11 0x0000aaaaecb0d32c in mongo::CommandHelpers::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>, mongo::transport::ServiceExecutor::ThreadingModel) ()
+#12 0x0000aaaaeb593370 in mongo::(anonymous namespace)::runCommandInvocation(std::shared_ptr<mongo::RequestExecutionContext>, std::shared_ptr<mongo::CommandInvocation>) ()
+#13 0x0000aaaaeb5a2944 in mongo::(anonymous namespace)::RunCommandImpl::_runCommand() ()
+#14 0x0000aaaaeb5a3bf0 in mongo::(anonymous namespace)::RunCommandImpl::_runImpl() ()
+#15 0x0000aaaaeb597ed4 in mongo::(anonymous namespace)::RunCommandImpl::run() ()
+#16 0x0000aaaaeb59a308 in mongo::(anonymous namespace)::ExecCommandDatabase::_commandExec() ()
+#17 0x0000aaaaeb5a6af8 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}::operator()() ()
+#18 0x0000aaaaeb5a8e54 in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#2}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#19 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#20 0x0000aaaaeb5aaf20 in auto mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::generalImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::future_details::FakeVoid&&)#1}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda(mongo::Status&&)#2}&&, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::propagateResultTo(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*) &&::{lambda()#3}&&) ()
+#21 0x0000aaaaeb59d09c in mongo::unique_function<void (mongo::future_details::SharedStateBase*)>::makeImpl<mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::makeContinuation<void, mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}>(mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&) &&::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*, mongo::future_details::SharedStateImpl<mongo::future_details::FakeVoid>*)#1}&&)::{lambda(mongo::future_details::SharedStateBase*)#1}>(mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>)::{lambda()#1}&&)::SpecificImpl::call(mongo::future_details::SharedStateBase*&&) ()
+#22 0x0000aaaaeb5611d8 in mongo::future_details::SharedStateBase::transitionToFinished() ()
+#23 0x0000aaaaeb5a78c0 in mongo::(anonymous namespace)::executeCommand(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#24 0x0000aaaaeb5a81c0 in mongo::(anonymous namespace)::receivedCommands(std::shared_ptr<mongo::(anonymous namespace)::HandleRequest::ExecutionContext>) ()
+#25 0x0000aaaaeb5a8d74 in mongo::(anonymous namespace)::CommandOpRunner::run() ()
+#26 0x0000aaaaeb59f900 in mongo::ServiceEntryPointCommon::handleRequest(mongo::OperationContext*, mongo::Message const&, std::unique_ptr<mongo::ServiceEntryPointCommon::Hooks const, std::default_delete<mongo::ServiceEntryPointCommon::Hooks const> >) ()
+#27 0x0000aaaaeb58eda8 in mongo::ServiceEntryPointMongod::handleRequest(mongo::OperationContext*, mongo::Message const&) ()
+#28 0x0000aaaaeb5d9978 in mongo::transport::ServiceStateMachine::Impl::processMessage() ()
+#29 0x0000aaaaeb5da040 in mongo::future_details::FutureImpl<mongo::future_details::FakeVoid>::then<mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}>(mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&)::{lambda()#2}&&) &&::{lambda(mongo::future_details::FakeVoid&&)#1}::operator()(mongo::future_details::FakeVoid&&) const [clone .isra.723] ()
+#30 0x0000aaaaeb5dd5d0 in mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&) ()
+#31 0x0000aaaaeb5ddaf8 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}>(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&&)::SpecificImpl::call(mongo::Status&&) ()
+#32 0x0000aaaaebc1c66c in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}>(mongo::transport::ServiceExecutor::schedule(mongo::unique_function<void (mongo::Status)>)::{lambda()#1}&&)::SpecificImpl::call() ()
+#33 0x0000aaaaed49bd48 in mongo::unique_function<void ()>::makeImpl<mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}>(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function<void ()>, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&&)::SpecificImpl::call() ()
+#34 0x0000aaaaed49ec88 in mongo::unique_function<void ()>::makeImpl<mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}>(mongo::launchServiceWorkerThread(mongo::unique_function<void ()>)::{lambda()#4}&&)::SpecificImpl::call() ()
+#35 0x0000aaaaed49ed3c in mongo::(anonymous namespace)::runFunc(void*) ()
+#36 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#37 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 31 (LWP 53 "listener"):
+#0  0x0000ffffa81ae794 in epoll_pwait () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000aaaaed943044 in asio::detail::epoll_reactor::run(long, asio::detail::op_queue<asio::detail::scheduler_operation>&) ()
+#2  0x0000aaaaed945cb4 in asio::detail::scheduler::do_run_one(asio::detail::conditionally_enabled_mutex::scoped_lock&, asio::detail::scheduler_thread_info&, std::error_code const&) ()
+#3  0x0000aaaaed946124 in asio::detail::scheduler::run(std::error_code&) ()
+#4  0x0000aaaaed94e18c in asio::io_context::run() ()
+#5  0x0000aaaaed4a5584 in mongo::transport::TransportLayerASIO::_runListener() ()
+#6  0x0000aaaaed4a5ba4 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::transport::TransportLayerASIO::start()::{lambda()#2}, , 0>(mongo::transport::TransportLayerASIO::start()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#7  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#8  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#9  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 30 (LWP 52 "Service.Fixed-0"):
+#0  0x0000ffffa81ae794 in epoll_pwait () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000aaaaed943044 in asio::detail::epoll_reactor::run(long, asio::detail::op_queue<asio::detail::scheduler_operation>&) ()
+#2  0x0000aaaaed945cb4 in asio::detail::scheduler::do_run_one(asio::detail::conditionally_enabled_mutex::scoped_lock&, asio::detail::scheduler_thread_info&, std::error_code const&) ()
+#3  0x0000aaaaed946124 in asio::detail::scheduler::run(std::error_code&) ()
+#4  0x0000aaaaed94e18c in asio::io_context::run() ()
+#5  0x0000aaaaed4ad98c in mongo::transport::TransportLayerASIO::ASIOReactor::run() ()
+#6  0x0000aaaaed491540 in mongo::unique_function<void (mongo::Status)>::makeImpl<mongo::transport::ServiceExecutorFixed::start()::{lambda(mongo::Status)#2}>(mongo::transport::ServiceExecutorFixed::start()::{lambda(mongo::Status)#2}&&)::SpecificImpl::call(mongo::Status&&) ()
+#7  0x0000aaaaeda509f0 in mongo::ThreadPool::Impl::_doOneTask(std::unique_lock<std::mutex>*) ()
+#8  0x0000aaaaeda535b0 in mongo::ThreadPool::Impl::_consumeTasks() ()
+#9  0x0000aaaaeda54854 in mongo::ThreadPool::Impl::_workerThreadBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) ()
+#10 0x0000aaaaeda54d68 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run() ()
+#11 0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#12 0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#13 0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 29 (LWP 51 "Logical.cheReap"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 28 (LWP 50 "Logical.Refresh"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 27 (LWP 49 "abortEx.actions"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 26 (LWP 48 "SessionKiller"):
+#0  0x0000ffffa825e41c in pthread_cond_wait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeddf7e98 in __gthread_cond_wait(pthread_cond_t*, pthread_mutex_t*) ()
+#2  0x0000aaaaeddf7fa4 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()
+#3  0x0000aaaaec7c44ec in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::SessionKiller::SessionKiller(mongo::ServiceContext*, std::function<mongo::StatusWith<std::vector<mongo::HostAndPort, std::allocator<mongo::HostAndPort> > > (mongo::OperationContext*, mongo::SessionKiller::Matcher const&, std::linear_congruential_engine<unsigned long, 48271ul, 0ul, 2147483647ul>*)>)::{lambda()#1}, , 0>(mongo::SessionKiller::SessionKiller(mongo::ServiceContext*, std::function<mongo::StatusWith<std::vector<mongo::HostAndPort, std::allocator<mongo::HostAndPort> > > (mongo::OperationContext*, mongo::SessionKiller::Matcher const&, std::linear_congruential_engine<unsigned long, 48271ul, 0ul, 2147483647ul>*)>)::{lambda()#1})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 25 (LWP 47 "Periodi.kRunner"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeda4de4c in mongo::(anonymous namespace)::PeriodicTaskRunner::run() ()
+#2  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#3  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 24 (LWP 46 "clientcursormon"):
+#0  0x0000ffffa817b60c in clock_nanosleep () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000ffffa8180f94 in nanosleep () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000aaaaedc87ab0 in mongo::sleepsecs(int) ()
+#3  0x0000aaaaec4a0020 in mongo::(anonymous namespace)::ClientCursorMonitor::run() ()
+#4  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#5  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#6  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#7  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#8  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 23 (LWP 45 "TTLMonitor"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb90b4b4 in mongo::TTLMonitor::run() ()
+#2  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#3  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 22 (LWP 44 "ftdc"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb9b23d0 in mongo::FTDCController::doLoop() ()
+#2  0x0000aaaaeb9b2aec in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::FTDCController::start()::{lambda()#2}, , 0>(mongo::FTDCController::start()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 21 (LWP 42 "Authori.nager-0"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeda53bb0 in mongo::ThreadPool::Impl::_consumeTasks() ()
+#2  0x0000aaaaeda54854 in mongo::ThreadPool::Impl::_workerThreadBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) ()
+#3  0x0000aaaaeda54d68 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 20 (LWP 40 "DeadlineMonitor"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeccd7ed8 in mongo::DeadlineMonitor<mongo::mozjs::MozJSImplScope>::deadlineMonitorThread() ()
+#2  0x0000aaaaeccd54bc in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<void (mongo::DeadlineMonitor<mongo::mozjs::MozJSImplScope>::*)(), mongo::DeadlineMonitor<mongo::mozjs::MozJSImplScope>*, 0>(void (mongo::DeadlineMonitor<mongo::mozjs::MozJSImplScope>::*)(), mongo::DeadlineMonitor<mongo::mozjs::MozJSImplScope>*&&)::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 19 (LWP 39 "Checkpointer"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaec3e9c58 in mongo::Checkpointer::run() ()
+#2  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#3  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 18 (LWP 38 "JournalFlusher"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaec42db94 in mongo::JournalFlusher::run() ()
+#2  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#3  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 17 (LWP 37 "Timesta.Monitor"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 16 (LWP 36 "WTIdleS.Sweeper"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb60e51c in mongo::WiredTigerKVEngine::WiredTigerSessionSweeper::run() ()
+#2  0x0000aaaaeda4d26c in mongo::BackgroundJob::jobBody() ()
+#3  0x0000aaaaeda4d8ac in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundJob::go()::{lambda()#2}, , 0>(mongo::BackgroundJob::go()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 15 (LWP 35 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb65b54c in __sweep_server ()
+#3  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#4  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 14 (LWP 34 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb67d2f8 in __wt_evict_thread_run ()
+#3  0x0000aaaaeb6df088 in __thread_run ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 13 (LWP 33 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb677dd8 in __evict_lru_pages ()
+#3  0x0000aaaaeb67bf1c in __wt_evict_thread_run ()
+#4  0x0000aaaaeb6df088 in __thread_run ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 12 (LWP 32 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb677dd8 in __evict_lru_pages ()
+#3  0x0000aaaaeb67bf1c in __wt_evict_thread_run ()
+#4  0x0000aaaaeb6df088 in __thread_run ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 11 (LWP 31 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb677dd8 in __evict_lru_pages ()
+#3  0x0000aaaaeb67bf1c in __wt_evict_thread_run ()
+#4  0x0000aaaaeb6df088 in __thread_run ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 10 (LWP 30 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb6ce960 in __wt_cond_auto_wait_signal ()
+#3  0x0000aaaaeb6560a0 in __log_server ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 9 (LWP 29 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb6ce960 in __wt_cond_auto_wait_signal ()
+#3  0x0000aaaaeb6ce9d0 in __wt_cond_auto_wait ()
+#4  0x0000aaaaeb657340 in __log_wrlsn_server ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 8 (LWP 28 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb655a28 in __log_file_server ()
+#3  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#4  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 7 (LWP 27 "mongod"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeb6a2f84 in __wt_cond_wait_signal ()
+#2  0x0000aaaaeb65d80c in __tiered_server ()
+#3  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#4  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 6 (LWP 26 "FlowCon.fresher"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 5 (LWP 25 "Certifi.Monitor"):
+#0  0x0000ffffa825e788 in pthread_cond_timedwait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaedae16e0 in mongo::ClockSource::waitForConditionUntil(mongo::stdx::condition_variable&, mongo::BasicLockableAdapter, mongo::Date_t, mongo::Waitable*) ()
+#2  0x0000aaaaebd1267c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2}, , 0>(mongo::PeriodicRunnerImpl::PeriodicJobImpl::_run()::{lambda()#2})::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 4 (LWP 24 "OCSPMan.rHTTP-0"):
+#0  0x0000ffffa825e41c in pthread_cond_wait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeddf7e98 in __gthread_cond_wait(pthread_cond_t*, pthread_mutex_t*) ()
+#2  0x0000aaaaeddf7fa4 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()
+#3  0x0000aaaaeda53f90 in mongo::ThreadPool::Impl::_consumeTasks() ()
+#4  0x0000aaaaeda54854 in mongo::ThreadPool::Impl::_workerThreadBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) ()
+#5  0x0000aaaaeda54d68 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4}, , 0>(mongo::ThreadPool::Impl::_startWorkerThread_inlock()::{lambda()#4})::{lambda()#1}> > >::_M_run() ()
+#6  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#7  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#8  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 3 (LWP 23 "Backgro.kSource"):
+#0  0x0000ffffa825e41c in pthread_cond_wait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeddf7e98 in __gthread_cond_wait(pthread_cond_t*, pthread_mutex_t*) ()
+#2  0x0000aaaaeddf7fa4 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()
+#3  0x0000aaaaedae084c in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<mongo::BackgroundThreadClockSource::_startTimerThread()::{lambda()#1}, , 0>(mongo::BackgroundThreadClockSource::_startTimerThread()::{lambda()#1})::{lambda()#1}> > >::_M_run() ()
+#4  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#5  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#6  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (LWP 22 "SignalHandler"):
+#0  0x0000ffffa8111b9c in sigtimedwait () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000aaaaec139ffc in mongo::(anonymous namespace)::signalProcessingThread(mongo::LogFileStatus) ()
+#2  0x0000aaaaec13aa38 in std::thread::_State_impl<std::thread::_Invoker<std::tuple<mongo::stdx::thread::thread<void (*)(mongo::LogFileStatus), mongo::LogFileStatus&, 0>(void (*)(mongo::LogFileStatus), mongo::LogFileStatus&)::{lambda()#1}> > >::_M_run() ()
+#3  0x0000aaaaeddfe3a0 in execute_native_thread_routine ()
+#4  0x0000ffffa8257624 in start_thread () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#5  0x0000ffffa81ae66c in ?? () from /proc/7/root/lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (LWP 7 "mongod"):
+#0  0x0000ffffa825e41c in pthread_cond_wait@@GLIBC_2.17 () from /proc/7/root/lib/aarch64-linux-gnu/libpthread.so.0
+#1  0x0000aaaaeddf7e98 in __gthread_cond_wait(pthread_cond_t*, pthread_mutex_t*) ()
+#2  0x0000aaaaeddf7fa4 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()
+#3  0x0000aaaaedc64b90 in mongo::waitForShutdown() ()
+#4  0x0000aaaaeb55716c in mongo::(anonymous namespace)::_initAndListen(mongo::ServiceContext*, int) [clone .isra.1945] ()
+#5  0x0000aaaaeb559d38 in mongo::mongod_main(int, char**) ()
+#6  0x0000aaaaeb3d6078 in main ()
+
+
+=== frame-pointer walks for threads stopped in pthread lock routines ===
+

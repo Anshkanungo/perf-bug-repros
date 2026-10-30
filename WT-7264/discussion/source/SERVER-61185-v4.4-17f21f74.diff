@@ -1,0 +1,51 @@
+diff --git a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+index d88362c37e669..f81f2823df8c0 100644
+--- a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
++++ b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+@@ -49,6 +49,7 @@
+ #include "mongo/db/storage/storage_options.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_customization_hooks.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_global_options.h"
++#include "mongo/db/storage/wiredtiger/wiredtiger_parameters_gen.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_record_store.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_session_cache.h"
+ #include "mongo/db/storage/wiredtiger/wiredtiger_util.h"
+@@ -1638,7 +1639,21 @@ StatusWith<bool> WiredTigerIndexUnique::_insertTimestampSafe(OperationContext* o
+         invariantWTOK(ret);
+ 
+         // Second phase looks up for existence of key to avoid insertion of duplicate key
+-        if (_keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId)) {
++        // The usage of 'prefix_search=true' enables an optimization that allows this search to
++        // return more quickly. See SERVER-56509.
++        // Does not work on prefixed indexes.
++        auto prefixSearch =
++            gWiredTigerPrefixSearchForUniqueIndexes.load() && _prefix == KVPrefix::kNotPrefixed;
++        if (prefixSearch) {
++            c->reconfigure(c, "prefix_search=true");
++        }
++        ON_BLOCK_EXIT([&] {
++            if (prefixSearch) {
++                c->reconfigure(c, "prefix_search=false");
++            }
++        });
++        auto keyExists = _keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId);
++        if (keyExists) {
+             auto key = KeyString::toBson(
+                 keyString.getBuffer(), sizeWithoutRecordId, _ordering, keyString.getTypeBits());
+             return buildDupKeyErrorStatus(
+diff --git a/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl b/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
+index da162a86ace83..7df8dc7a92dc5 100644
+--- a/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
++++ b/src/mongo/db/storage/wiredtiger/wiredtiger_parameters.idl
+@@ -164,3 +164,11 @@ server_parameters:
+       cpp_vartype: 'bool'
+       cpp_varname: gWiredTigerSkipTableLoggingChecksOnStartup
+       default: false
++
++    wiredTigerPrefixSearchForUniqueIndexes:
++      description: >-
++        Uses the prefix_search feature when checking for duplicate keys on unique indexes
++      set_at: [ startup, runtime ]
++      cpp_vartype: 'AtomicWord<bool>'
++      cpp_varname: gWiredTigerPrefixSearchForUniqueIndexes
++      default: false

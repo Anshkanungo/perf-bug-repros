@@ -1,0 +1,906 @@
+{
+ "conditions": [
+  {
+   "condition": "5.0.33 prefix_search=off bruce sync-start",
+   "runs": 5,
+   "stalled_runs": 4,
+   "capped_runs": 0,
+   "insert_s_median": 239.01,
+   "insert_s_min": 5.24,
+   "insert_s_max": 562.3,
+   "longest_call_s_median": 238.02,
+   "longest_call_s_max": 561.32,
+   "stall_durations_s": [
+    561.32,
+    329.52,
+    246.66,
+    238.02,
+    206.99,
+    197.84,
+    171.54,
+    152.65,
+    72.69
+   ],
+   "stalled_threads_per_stalled_run": [
+    4,
+    3,
+    1,
+    1
+   ],
+   "hs_misses_median": 388598870.0,
+   "hs_misses_max": 1083053646.0,
+   "hs_misses_min_stalled": 272498848.0,
+   "stall_share_min": 0.9937179721100369,
+   "noisy_runs": 4,
+   "ac_runs": 4,
+   "stall_types": {
+    "history-store walk": 4
+   },
+   "stalled_calls_total": 9,
+   "stalled_calls_batch0": 9,
+   "stall_start_max_s": 0.005,
+   "alone_threads_vs_stalled": [
+    [
+     2.0,
+     4
+    ],
+    [
+     3.0,
+     3
+    ],
+    [
+     1.0,
+     1
+    ],
+    [
+     1.0,
+     1
+    ]
+   ],
+   "labels": [
+    "A1-5.0.33-W1-off",
+    "A2-5.0.33-W1-off",
+    "A3-5.0.33-W1-off",
+    "A4-5.0.33-W1-off",
+    "A5-5.0.33-W1-off"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=on bruce sync-start",
+   "runs": 5,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 5.2,
+   "insert_s_min": 5.04,
+   "insert_s_max": 5.81,
+   "longest_call_s_median": 0.196,
+   "longest_call_s_max": 0.328,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 2,
+   "ac_runs": 5,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "A1-5.0.33-W1-on",
+    "A2-5.0.33-W1-on",
+    "A3-5.0.33-W1-on",
+    "A4-5.0.33-W1-on",
+    "A5-5.0.33-W1-on"
+   ]
+  },
+  {
+   "condition": "4.2.24 prefix_search=absent 67350",
+   "runs": 1,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 4.32,
+   "insert_s_min": 4.32,
+   "insert_s_max": 4.32,
+   "longest_call_s_median": 2.416,
+   "longest_call_s_max": 2.416,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": null,
+   "hs_misses_max": null,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 0,
+   "ac_runs": 0,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "X1-4.2.24-W2"
+   ]
+  },
+  {
+   "condition": "4.2.24 prefix_search=absent bruce",
+   "runs": 3,
+   "stalled_runs": 1,
+   "capped_runs": 0,
+   "insert_s_median": 4.77,
+   "insert_s_min": 4.74,
+   "insert_s_max": 10.51,
+   "longest_call_s_median": 0.314,
+   "longest_call_s_max": 6.016,
+   "stall_durations_s": [
+    6.02,
+    5.99,
+    5.14,
+    5.12,
+    5.1,
+    5.1,
+    5.09,
+    5.09,
+    5.08,
+    5.07,
+    5.07,
+    5.07,
+    5.07,
+    5.06,
+    5.06,
+    5.04,
+    5.04,
+    5.04,
+    5.03,
+    5.03
+   ],
+   "stalled_threads_per_stalled_run": [
+    20
+   ],
+   "hs_misses_median": null,
+   "hs_misses_max": null,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 1,
+   "ac_runs": 2,
+   "stall_types": {
+    "eviction": 1
+   },
+   "stalled_calls_total": 20,
+   "stalled_calls_batch0": 1,
+   "stall_start_max_s": 1.036,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "B1-4.2.24-W0",
+    "B2-4.2.24-W0",
+    "B4-4.2.24-W0"
+   ]
+  },
+  {
+   "condition": "4.2.24 prefix_search=absent bruce sync-start",
+   "runs": 3,
+   "stalled_runs": 2,
+   "capped_runs": 0,
+   "insert_s_median": 9.66,
+   "insert_s_min": 5.44,
+   "insert_s_max": 11.64,
+   "longest_call_s_median": 5.097,
+   "longest_call_s_max": 7.211,
+   "stall_durations_s": [
+    7.21,
+    7.18,
+    6.5,
+    6.48,
+    6.46,
+    6.46,
+    6.46,
+    6.46,
+    6.45,
+    6.45,
+    6.45,
+    6.44,
+    6.43,
+    6.43,
+    6.42,
+    6.42,
+    6.42,
+    6.42,
+    6.4,
+    6.37,
+    5.1,
+    5.09,
+    4.36,
+    4.29,
+    4.29,
+    4.28,
+    4.28,
+    4.28,
+    4.28,
+    4.27,
+    4.27,
+    4.26,
+    4.25,
+    4.25,
+    4.25,
+    4.24,
+    4.23,
+    4.23,
+    4.21,
+    4.18
+   ],
+   "stalled_threads_per_stalled_run": [
+    20,
+    20
+   ],
+   "hs_misses_median": null,
+   "hs_misses_max": null,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 1,
+   "ac_runs": 0,
+   "stall_types": {
+    "eviction": 2
+   },
+   "stalled_calls_total": 40,
+   "stalled_calls_batch0": 4,
+   "stall_start_max_s": 0.842,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "BS1-4.2.24-W1",
+    "BS2-4.2.24-W1",
+    "BS3-4.2.24-W1"
+   ]
+  },
+  {
+   "condition": "4.4.1 prefix_search=absent bruce",
+   "runs": 3,
+   "stalled_runs": 2,
+   "capped_runs": 0,
+   "insert_s_median": 11.26,
+   "insert_s_min": 10.65,
+   "insert_s_max": 12.33,
+   "longest_call_s_median": 4.472,
+   "longest_call_s_max": 4.685,
+   "stall_durations_s": [
+    4.68,
+    4.47,
+    4.39,
+    4.37,
+    4.35,
+    4.35,
+    4.34,
+    4.32,
+    4.32,
+    4.31,
+    4.29,
+    4.28,
+    3.58,
+    3.54,
+    3.52,
+    3.51,
+    3.42,
+    3.28,
+    3.24,
+    3.16,
+    3.15,
+    3.14,
+    3.13,
+    3.12,
+    3.12,
+    3.12,
+    3.11,
+    3.1,
+    3.06,
+    3.01
+   ],
+   "stalled_threads_per_stalled_run": [
+    16,
+    14
+   ],
+   "hs_misses_median": 106170.0,
+   "hs_misses_max": 241315.0,
+   "hs_misses_min_stalled": 106170.0,
+   "stall_share_min": 0.04869548836771216,
+   "noisy_runs": 2,
+   "ac_runs": 2,
+   "stall_types": {
+    "in-memory walk": 2
+   },
+   "stalled_calls_total": 30,
+   "stalled_calls_batch0": 21,
+   "stall_start_max_s": 1.158,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "R1-4.4.1-W0",
+    "R2-4.4.1-W0",
+    "R4-4.4.1-W0"
+   ]
+  },
+  {
+   "condition": "4.4.1 prefix_search=absent bruce sync-start",
+   "runs": 3,
+   "stalled_runs": 2,
+   "capped_runs": 0,
+   "insert_s_median": 12.39,
+   "insert_s_min": 10.33,
+   "insert_s_max": 12.84,
+   "longest_call_s_median": 5.281,
+   "longest_call_s_max": 5.331,
+   "stall_durations_s": [
+    5.33,
+    5.28,
+    3.02
+   ],
+   "stalled_threads_per_stalled_run": [
+    1,
+    2
+   ],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 364360.0,
+   "hs_misses_min_stalled": 0.0,
+   "stall_share_min": 0.26710396311340434,
+   "noisy_runs": 1,
+   "ac_runs": 0,
+   "stall_types": {
+    "in-memory walk": 2
+   },
+   "stalled_calls_total": 3,
+   "stalled_calls_batch0": 3,
+   "stall_start_max_s": 0.008,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "RS1-4.4.1-W1",
+    "RS2-4.4.1-W1",
+    "RS3-4.4.1-W1"
+   ]
+  },
+  {
+   "condition": "4.4.2 prefix_search=absent bruce",
+   "runs": 3,
+   "stalled_runs": 3,
+   "capped_runs": 3,
+   "insert_s_median": 300.0,
+   "insert_s_min": 300.0,
+   "insert_s_max": 300.0,
+   "longest_call_s_median": 299.927,
+   "longest_call_s_max": 299.941,
+   "stall_durations_s": [
+    299.94,
+    299.93,
+    299.92,
+    299.91,
+    299.91,
+    299.91,
+    299.91,
+    299.91,
+    299.9,
+    299.9,
+    299.9,
+    299.9,
+    299.89,
+    299.89,
+    299.89,
+    299.89,
+    299.89,
+    299.89,
+    299.88,
+    299.88,
+    299.88,
+    299.86,
+    299.86,
+    299.86,
+    299.86,
+    299.85,
+    299.85,
+    299.85,
+    299.84,
+    299.83,
+    170.53,
+    115.54
+   ],
+   "stalled_threads_per_stalled_run": [
+    12,
+    10,
+    10
+   ],
+   "hs_misses_median": 543399586.0,
+   "hs_misses_max": 545804355.0,
+   "hs_misses_min_stalled": 524062341.0,
+   "stall_share_min": 0.9908657164892526,
+   "noisy_runs": 3,
+   "ac_runs": 2,
+   "stall_types": {
+    "history-store walk": 3
+   },
+   "stalled_calls_total": 32,
+   "stalled_calls_batch0": 27,
+   "stall_start_max_s": 0.168,
+   "alone_threads_vs_stalled": [
+    [
+     6.0,
+     12
+    ],
+    [
+     10.0,
+     10
+    ],
+    [
+     9.0,
+     10
+    ]
+   ],
+   "labels": [
+    "R1-4.4.2-W0",
+    "R2-4.4.2-W0",
+    "R4-4.4.2-W0"
+   ]
+  },
+  {
+   "condition": "4.4.2 prefix_search=absent bruce sync-start",
+   "runs": 3,
+   "stalled_runs": 3,
+   "capped_runs": 3,
+   "insert_s_median": 300.0,
+   "insert_s_min": 300.0,
+   "insert_s_max": 300.0,
+   "longest_call_s_median": 299.999,
+   "longest_call_s_max": 299.999,
+   "stall_durations_s": [
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    300.0,
+    299.99,
+    299.99,
+    70.84
+   ],
+   "stalled_threads_per_stalled_run": [
+    3,
+    5,
+    7
+   ],
+   "hs_misses_median": 628636384.0,
+   "hs_misses_max": 751376571.0,
+   "hs_misses_min_stalled": 585469205.0,
+   "stall_share_min": 0.9916255919899323,
+   "noisy_runs": 3,
+   "ac_runs": 0,
+   "stall_types": {
+    "history-store walk": 3
+   },
+   "stalled_calls_total": 15,
+   "stalled_calls_batch0": 15,
+   "stall_start_max_s": 0.009,
+   "alone_threads_vs_stalled": [
+    [
+     2.0,
+     3
+    ],
+    [
+     5.0,
+     5
+    ],
+    [
+     7.0,
+     7
+    ]
+   ],
+   "labels": [
+    "RS3-4.4.2-W1",
+    "RS4-4.4.2-W1",
+    "RS5-4.4.2-W1"
+   ]
+  },
+  {
+   "condition": "4.4.30 prefix_search=off bruce",
+   "runs": 3,
+   "stalled_runs": 3,
+   "capped_runs": 3,
+   "insert_s_median": 300.0,
+   "insert_s_min": 300.0,
+   "insert_s_max": 300.0,
+   "longest_call_s_median": 299.927,
+   "longest_call_s_max": 299.935,
+   "stall_durations_s": [
+    299.94,
+    299.93,
+    299.93,
+    299.92,
+    299.92,
+    299.92,
+    299.92,
+    299.92,
+    299.92,
+    299.91,
+    299.91,
+    299.91,
+    299.91,
+    299.91,
+    299.9,
+    299.9,
+    299.9,
+    299.9,
+    299.9,
+    299.9,
+    299.89,
+    299.88,
+    299.88,
+    299.88,
+    299.88,
+    299.88,
+    299.88,
+    299.88,
+    299.87,
+    299.87,
+    299.87,
+    299.86,
+    299.86,
+    299.85,
+    299.85,
+    299.84,
+    299.83,
+    299.83,
+    299.83,
+    299.81
+   ],
+   "stalled_threads_per_stalled_run": [
+    13,
+    15,
+    12
+   ],
+   "hs_misses_median": 472184302.0,
+   "hs_misses_max": 472393693.0,
+   "hs_misses_min_stalled": 468949081.0,
+   "stall_share_min": 0.9889860612096334,
+   "noisy_runs": 3,
+   "ac_runs": 3,
+   "stall_types": {
+    "history-store walk": 3
+   },
+   "stalled_calls_total": 40,
+   "stalled_calls_batch0": 32,
+   "stall_start_max_s": 0.194,
+   "alone_threads_vs_stalled": [
+    [
+     4.0,
+     13
+    ],
+    [
+     2.0,
+     15
+    ],
+    [
+     5.0,
+     12
+    ]
+   ],
+   "labels": [
+    "V1-4.4.30-W0-off",
+    "V2-4.4.30-W0-off",
+    "V3-4.4.30-W0-off"
+   ]
+  },
+  {
+   "condition": "4.4.30 prefix_search=on bruce",
+   "runs": 3,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 5.26,
+   "insert_s_min": 5.23,
+   "insert_s_max": 5.34,
+   "longest_call_s_median": 0.201,
+   "longest_call_s_max": 0.206,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 0,
+   "ac_runs": 3,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "V1-4.4.30-W0-on",
+    "V2-4.4.30-W0-on",
+    "V3-4.4.30-W0-on"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=off 67350",
+   "runs": 2,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 4.37,
+   "insert_s_min": 4.34,
+   "insert_s_max": 4.4,
+   "longest_call_s_median": 2.652,
+   "longest_call_s_max": 2.804,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 1,
+   "ac_runs": 0,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "X1-5.0.33-W2-off",
+    "X2-5.0.33-W2-off"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=off bruce",
+   "runs": 10,
+   "stalled_runs": 2,
+   "capped_runs": 0,
+   "insert_s_median": 5.425,
+   "insert_s_min": 5.19,
+   "insert_s_max": 69.02,
+   "longest_call_s_median": 0.351,
+   "longest_call_s_max": 67.991,
+   "stall_durations_s": [
+    67.99,
+    3.11
+   ],
+   "stalled_threads_per_stalled_run": [
+    1,
+    1
+   ],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 102669894.0,
+   "hs_misses_min_stalled": 1916224.0,
+   "stall_share_min": 0.08223099178384155,
+   "noisy_runs": 3,
+   "ac_runs": 10,
+   "stall_types": {
+    "history-store walk": 1,
+    "other": 1
+   },
+   "stalled_calls_total": 2,
+   "stalled_calls_batch0": 2,
+   "stall_start_max_s": 0.09,
+   "alone_threads_vs_stalled": [
+    [
+     1.0,
+     1
+    ]
+   ],
+   "labels": [
+    "U01-5.0.33-W0-off",
+    "U02-5.0.33-W0-off",
+    "U03-5.0.33-W0-off",
+    "U04-5.0.33-W0-off",
+    "U05-5.0.33-W0-off",
+    "U06-5.0.33-W0-off",
+    "U07-5.0.33-W0-off",
+    "U08-5.0.33-W0-off",
+    "U09-5.0.33-W0-off",
+    "U10-5.0.33-W0-off"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=off bruce sync-start (profiled)",
+   "runs": 1,
+   "stalled_runs": 1,
+   "capped_runs": 1,
+   "insert_s_median": 300.0,
+   "insert_s_min": 300.0,
+   "insert_s_max": 300.0,
+   "longest_call_s_median": 299.998,
+   "longest_call_s_max": 299.998,
+   "stall_durations_s": [
+    300.0,
+    290.14
+   ],
+   "stalled_threads_per_stalled_run": [
+    2
+   ],
+   "hs_misses_median": 645846154.0,
+   "hs_misses_max": 645846154.0,
+   "hs_misses_min_stalled": 645846154.0,
+   "stall_share_min": 0.9947232386863452,
+   "noisy_runs": 1,
+   "ac_runs": 1,
+   "stall_types": {
+    "history-store walk": 1
+   },
+   "stalled_calls_total": 2,
+   "stalled_calls_batch0": 2,
+   "stall_start_max_s": 0.002,
+   "alone_threads_vs_stalled": [
+    [
+     2.0,
+     2
+    ]
+   ],
+   "labels": [
+    "P1-5.0.33-W1-off-profile"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=off bruce sync-start NON-UNIQUE",
+   "runs": 2,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 3.365,
+   "insert_s_min": 3.08,
+   "insert_s_max": 3.65,
+   "longest_call_s_median": 0.175,
+   "longest_call_s_max": 0.193,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 1,
+   "ac_runs": 0,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "C1-5.0.33-W1-off-nonunique",
+    "C2-5.0.33-W1-off-nonunique"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=on 67350",
+   "runs": 2,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 4.25,
+   "insert_s_min": 4.22,
+   "insert_s_max": 4.28,
+   "longest_call_s_median": 2.8064999999999998,
+   "longest_call_s_max": 2.838,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 0,
+   "ac_runs": 0,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "X1-5.0.33-W2-on",
+    "X2-5.0.33-W2-on"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=on bruce",
+   "runs": 10,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 5.285,
+   "insert_s_min": 5.2,
+   "insert_s_max": 5.88,
+   "longest_call_s_median": 0.1875,
+   "longest_call_s_max": 0.285,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 3,
+   "ac_runs": 10,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "U01-5.0.33-W0-on",
+    "U02-5.0.33-W0-on",
+    "U03-5.0.33-W0-on",
+    "U04-5.0.33-W0-on",
+    "U05-5.0.33-W0-on",
+    "U06-5.0.33-W0-on",
+    "U07-5.0.33-W0-on",
+    "U08-5.0.33-W0-on",
+    "U09-5.0.33-W0-on",
+    "U10-5.0.33-W0-on"
+   ]
+  },
+  {
+   "condition": "5.0.33 prefix_search=on bruce sync-start (profiled)",
+   "runs": 1,
+   "stalled_runs": 0,
+   "capped_runs": 0,
+   "insert_s_median": 5.36,
+   "insert_s_min": 5.36,
+   "insert_s_max": 5.36,
+   "longest_call_s_median": 0.323,
+   "longest_call_s_max": 0.323,
+   "stall_durations_s": [],
+   "stalled_threads_per_stalled_run": [],
+   "hs_misses_median": 0.0,
+   "hs_misses_max": 0.0,
+   "hs_misses_min_stalled": null,
+   "stall_share_min": null,
+   "noisy_runs": 1,
+   "ac_runs": 1,
+   "stall_types": {},
+   "stalled_calls_total": 0,
+   "stalled_calls_batch0": 0,
+   "stall_start_max_s": null,
+   "alone_threads_vs_stalled": [],
+   "labels": [
+    "P1-5.0.33-W1-on-profile"
+   ]
+  }
+ ],
+ "criteria": {
+  "S1": {
+   "desc": "\u22653 of the bug-arm runs have a stalled call",
+   "value": "4/5",
+   "pass": true
+  },
+  "S2": {
+   "desc": "0 fix-arm runs have a stalled call",
+   "value": "0/5",
+   "pass": true
+  },
+  "S3": {
+   "desc": "one-sided Fisher exact test on stalled runs, bug vs fix, p < 0.05",
+   "value": "p = 0.0238",
+   "pass": true
+  },
+  "S4a": {
+   "desc": "every stalled bug-arm run has \u2265 1,000,000 HS reads missed",
+   "value": "1,083,053,646, 689,428,808, 388,598,870, 272,498,848",
+   "pass": true
+  },
+  "S4b": {
+   "desc": "fix-arm max HS reads missed < 1% of the smallest stalled bug-arm value",
+   "value": "fix max 0 vs bug min 272,498,848",
+   "pass": true
+  },
+  "S4c": {
+   "desc": "in every stalled bug-arm run \u2265 80% of HS misses accrue while a call has run \u2265 3 s",
+   "value": "100%, 99%, 99%, 99%",
+   "pass": true
+  },
+  "S5": {
+   "desc": "profile",
+   "value": "`P1-5.0.33-W1-off-profile`: 59,978 stuck samples, _keyExists 99.9%, __wt_hs_find_upd 81.9%, gdb snapshot in _keyExists: True / `P1-5.0.33-W1-on-profile`: __wt_hs_find_upd 0.0% of 35,600 conn samples",
+   "pass": true
+  }
+ },
+ "sensitivity_non_noisy": {
+  "bug": "0/1",
+  "fix": "0/3",
+  "fisher_p": 1.0,
+  "onset": {
+   "bug": "2/3",
+   "fix": "0/3",
+   "fisher_p": 0.2,
+   "stalled_runs_with_noisy_onset": 2
+  }
+ }
+}

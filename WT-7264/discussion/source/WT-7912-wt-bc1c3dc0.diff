@@ -1,0 +1,514 @@
+diff --git a/src/btree/bt_curnext.c b/src/btree/bt_curnext.c
+index 6953eb3dc02..b2588e85df1 100644
+--- a/src/btree/bt_curnext.c
++++ b/src/btree/bt_curnext.c
+@@ -334,8 +334,8 @@ __cursor_var_next(WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skip
+  *     Move to the next row-store item.
+  */
+ static inline int
+-__cursor_row_next(
+-  WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skippedp, WT_ITEM *prefix)
++__cursor_row_next(WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skippedp,
++  WT_ITEM *prefix, bool *prefix_key_out_of_bounds)
+ {
+     WT_CELL_UNPACK_KV kpack;
+     WT_INSERT *ins;
+@@ -348,6 +348,7 @@ __cursor_row_next(
+     key = &cbt->iface.key;
+     page = cbt->ref->page;
+     session = CUR2S(cbt);
++    *prefix_key_out_of_bounds = false;
+     prefix_search = prefix != NULL && F_ISSET(&cbt->iface, WT_CURSTD_PREFIX_SEARCH);
+     *skippedp = 0;
+ 
+@@ -401,6 +402,7 @@ __cursor_row_next(
+              * are visiting is after our prefix.
+              */
+             if (prefix_search && __wt_prefix_match(prefix, key) < 0) {
++                *prefix_key_out_of_bounds = true;
+                 WT_STAT_CONN_DATA_INCR(session, cursor_search_near_prefix_fast_paths);
+                 return (WT_NOTFOUND);
+             }
+@@ -446,6 +448,7 @@ __cursor_row_next(
+          * visiting is after our prefix.
+          */
+         if (prefix_search && __wt_prefix_match(prefix, &cbt->iface.key) < 0) {
++            *prefix_key_out_of_bounds = true;
+             WT_STAT_CONN_DATA_INCR(session, cursor_search_near_prefix_fast_paths);
+             return (WT_NOTFOUND);
+         }
+@@ -690,9 +693,10 @@ __wt_btcur_next_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
+     WT_SESSION_IMPL *session;
+     size_t total_skipped, skipped;
+     uint32_t flags;
+-    bool newpage, restart;
++    bool newpage, prefix_key_out_of_bounds, restart;
+ 
+     cursor = &cbt->iface;
++    prefix_key_out_of_bounds = false;
+     session = CUR2S(cbt);
+     total_skipped = 0;
+ 
+@@ -750,14 +754,18 @@ __wt_btcur_next_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
+                 total_skipped += skipped;
+                 break;
+             case WT_PAGE_ROW_LEAF:
+-                ret = __cursor_row_next(cbt, newpage, restart, &skipped, prefix);
++                ret = __cursor_row_next(
++                  cbt, newpage, restart, &skipped, prefix, &prefix_key_out_of_bounds);
+                 total_skipped += skipped;
+                 /*
+-                 * We can directly return WT_NOTFOUND here as the caller expects the cursor to be
+-                 * positioned when traversing keys for prefix search near.
++                 * If we are doing a search near with prefix key configured, we need to check if we
++                 * have exited the cursor row next function due to a prefix key mismatch. If so, we
++                 * can immediately return WT_NOTFOUND and we do not have to walk onto the next page.
+                  */
+-                if (ret == WT_NOTFOUND && F_ISSET(&cbt->iface, WT_CURSTD_PREFIX_SEARCH))
++                if (prefix_key_out_of_bounds) {
++                    WT_ASSERT(session, ret == WT_NOTFOUND);
+                     return (WT_NOTFOUND);
++                }
+                 break;
+             default:
+                 WT_ERR(__wt_illegal_value(session, page->type));
+diff --git a/src/btree/bt_curprev.c b/src/btree/bt_curprev.c
+index 000a39ca61a..c628f0a5669 100644
+--- a/src/btree/bt_curprev.c
++++ b/src/btree/bt_curprev.c
+@@ -489,12 +489,10 @@ __cursor_var_prev(WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skip
+ 
+ /*
+  * __cursor_row_prev --
+- *     Move to the previous row-store item. Taking an optional prefix item for a special case of
+- *     search near.
++ *     Move to the previous row-store item.
+  */
+ static inline int
+-__cursor_row_prev(
+-  WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skippedp, WT_ITEM *prefix)
++__cursor_row_prev(WT_CURSOR_BTREE *cbt, bool newpage, bool restart, size_t *skippedp)
+ {
+     WT_CELL_UNPACK_KV kpack;
+     WT_INSERT *ins;
+@@ -502,12 +500,10 @@ __cursor_row_prev(
+     WT_PAGE *page;
+     WT_ROW *rip;
+     WT_SESSION_IMPL *session;
+-    bool prefix_search;
+ 
+     key = &cbt->iface.key;
+     page = cbt->ref->page;
+     session = CUR2S(cbt);
+-    prefix_search = prefix != NULL && F_ISSET(&cbt->iface, WT_CURSTD_PREFIX_SEARCH);
+     *skippedp = 0;
+ 
+     /* If restarting after a prepare conflict, jump to the right spot. */
+@@ -565,14 +561,6 @@ __cursor_row_prev(
+             if (F_ISSET(&cbt->iface, WT_CURSTD_KEY_ONLY))
+                 return (0);
+ 
+-            /*
+-             * If the cursor has prefix search configured we can early exit here if the key we are
+-             * visiting is before our prefix.
+-             */
+-            if (prefix_search && __wt_prefix_match(prefix, key) > 0) {
+-                WT_STAT_CONN_DATA_INCR(session, cursor_search_near_prefix_fast_paths);
+-                return (WT_NOTFOUND);
+-            }
+             WT_RET(__wt_txn_read_upd_list(session, cbt, ins->upd));
+             if (cbt->upd_value->type == WT_UPDATE_INVALID) {
+                 ++*skippedp;
+@@ -616,14 +604,6 @@ __cursor_row_prev(
+         if (F_ISSET(&cbt->iface, WT_CURSTD_KEY_ONLY))
+             return (0);
+ 
+-        /*
+-         * If the cursor has prefix search configured we can early exit here if the key we are
+-         * visiting is before our prefix.
+-         */
+-        if (prefix_search && __wt_prefix_match(prefix, &cbt->iface.key) > 0) {
+-            WT_STAT_CONN_DATA_INCR(session, cursor_search_near_prefix_fast_paths);
+-            return (WT_NOTFOUND);
+-        }
+         WT_RET(
+           __wt_txn_read(session, cbt, &cbt->iface.key, WT_RECNO_OOB, WT_ROW_UPDATE(page, rip)));
+         if (cbt->upd_value->type == WT_UPDATE_INVALID) {
+@@ -643,11 +623,11 @@ __cursor_row_prev(
+ }
+ 
+ /*
+- * __wt_btcur_prev_prefix --
++ * __wt_btcur_prev --
+  *     Move to the previous record in the tree.
+  */
+ int
+-__wt_btcur_prev_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
++__wt_btcur_prev(WT_CURSOR_BTREE *cbt, bool truncating)
+ {
+     WT_CURSOR *cursor;
+     WT_DECL_RET;
+@@ -728,7 +708,7 @@ __wt_btcur_prev_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
+                 total_skipped += skipped;
+                 break;
+             case WT_PAGE_ROW_LEAF:
+-                ret = __cursor_row_prev(cbt, newpage, restart, &skipped, prefix);
++                ret = __cursor_row_prev(cbt, newpage, restart, &skipped);
+                 total_skipped += skipped;
+                 /*
+                  * We can directly return WT_NOTFOUND here as the caller will reset the cursor for
+@@ -822,13 +802,3 @@ __wt_btcur_prev_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
+     F_CLR(cbt, WT_CBT_ITERATE_RETRY_NEXT);
+     return (ret);
+ }
+-
+-/*
+- * __wt_btcur_prev --
+- *     Move to the previous record in the tree.
+- */
+-int
+-__wt_btcur_prev(WT_CURSOR_BTREE *cbt, bool truncating)
+-{
+-    return (__wt_btcur_prev_prefix(cbt, NULL, truncating));
+-}
+diff --git a/src/btree/bt_cursor.c b/src/btree/bt_cursor.c
+index 6cd2b3c3fc7..f7d5c7ebac8 100644
+--- a/src/btree/bt_cursor.c
++++ b/src/btree/bt_cursor.c
+@@ -740,10 +740,22 @@ __wt_btcur_search_near(WT_CURSOR_BTREE *cbt, int *exactp)
+                 goto done;
+         }
+ 
++        /*
++         * It is not necessary to go backwards when search_near is used with a prefix, as cursor row
++         * search places us on the first key of the prefix range. All the entries before the key we
++         * were placed on will not match the prefix.
++         *
++         * For example, if we search with the prefix "b", the cursor will be positioned at the first
++         * key starting with "b". All the entries before this one will start with "a", hence not
++         * matching the prefix.
++         */
++        if (F_ISSET(cursor, WT_CURSTD_PREFIX_SEARCH))
++            goto done;
++
+         /*
+          * We walked to the end of the tree without finding a match. Walk backwards instead.
+          */
+-        while ((ret = __wt_btcur_prev_prefix(cbt, &state.key, false)) != WT_NOTFOUND) {
++        while ((ret = __wt_btcur_prev(cbt, false)) != WT_NOTFOUND) {
+             WT_ERR(ret);
+             if (btree->type == BTREE_ROW)
+                 WT_ERR(__wt_compare(session, btree->collator, &cursor->key, &state.key, &exact));
+diff --git a/src/include/extern.h b/src/include/extern.h
+index c948f4e6b1a..62bcd0ca60d 100644
+--- a/src/include/extern.h
++++ b/src/include/extern.h
+@@ -284,8 +284,6 @@ extern int __wt_btcur_next_random(WT_CURSOR_BTREE *cbt)
+   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+ extern int __wt_btcur_prev(WT_CURSOR_BTREE *cbt, bool truncating)
+   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+-extern int __wt_btcur_prev_prefix(WT_CURSOR_BTREE *cbt, WT_ITEM *prefix, bool truncating)
+-  WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+ extern int __wt_btcur_range_truncate(WT_CURSOR_BTREE *start, WT_CURSOR_BTREE *stop)
+   WT_GCC_FUNC_DECL_ATTRIBUTE((warn_unused_result));
+ extern int __wt_btcur_remove(WT_CURSOR_BTREE *cbt, bool positioned)
+diff --git a/test/cppsuite/tests/search_near_01.cxx b/test/cppsuite/tests/search_near_01.cxx
+index 280ada6574d..b61ee27c637 100644
+--- a/test/cppsuite/tests/search_near_01.cxx
++++ b/test/cppsuite/tests/search_near_01.cxx
+@@ -190,8 +190,8 @@ class search_near_01 : public test_harness::test {
+          * per search near function call. The key we search near can be different in length, which
+          * will increase the number of entries search by a factor of 26.
+          */
+-        expected_entries = tc->thread_count * keys_per_prefix * 2 *
+-          pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len);
++        expected_entries =
++          tc->thread_count * keys_per_prefix * pow(ALPHABET.size(), PREFIX_KEY_LEN - srchkey_len);
+ 
+         /*
+          * Read at timestamp 10, so that no keys are visible to this transaction. This allows prefix
+@@ -245,8 +245,24 @@ class search_near_01 : public test_harness::test {
+                  */
+                 testutil_assert(
+                   (expected_entries + (2 * tc->thread_count)) >= entries_stat - prev_entries_stat);
+-                /* FIXME-WT-8286: Temporarily disable prefix statistics assert. */
+-                // testutil_assert(prefix_stat > prev_prefix_stat);
++                /*
++                 * There is an edge case where we may not early exit the prefix search near call
++                 * because the specified prefix matches the rest of the entries in the tree.
++                 *
++                 * In this test, the keys in our database start with prefixes aaa -> zzz. If we
++                 * search with a prefix such as "z", we will not early exit the search near call
++                 * because the rest of the keys will also start with "z" and match the prefix. The
++                 * statistic will stay the same if we do not early exit search near.
++                 *
++                 * However, we still need to keep the assertion as >= rather than a strictly equals
++                 * as the test is multithreaded and other threads may increment the statistic if
++                 * they are searching with a different prefix that will early exit.
++                 */
++                if (srch_key == "z" || srch_key == "zz" || srch_key == "zzz") {
++                    testutil_assert(prefix_stat >= prev_prefix_stat);
++                } else {
++                    testutil_assert(prefix_stat > prev_prefix_stat);
++                }
+ 
+                 tc->transaction.add_op();
+                 tc->sleep();
+diff --git a/test/suite/test_search_near01.py b/test/suite/test_search_near01.py
+index 6df71b438ff..058704f9d1b 100755
+--- a/test/suite/test_search_near01.py
++++ b/test/suite/test_search_near01.py
+@@ -100,11 +100,11 @@ def test_base_scenario(self):
+ 
+         cursor2.reconfigure("prefix_search=true")
+         cursor2.set_key('aa')
+-        cursor2.search_near()
++        self.assertEqual(cursor2.search_near(), wiredtiger.WT_NOTFOUND)
+ 
+         prefix_skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100)
+-        # We should've skipped ~26*2 here as we're only looking at the "aa" range * 2.
+-        self.assertGreaterEqual(prefix_skip_count - skip_count, 26*2)
++        # We should've skipped ~26 here as we're only looking at the "aa" range.
++        self.assertGreaterEqual(prefix_skip_count - skip_count, 26)
+         skip_count = prefix_skip_count
+ 
+         # The prefix code will have come into play at once as we walked to "aba". The prev
+@@ -114,15 +114,16 @@ def test_base_scenario(self):
+ 
+         # Search for a key not at the start.
+         cursor2.set_key('bb')
+-        cursor2.search_near()
++        self.assertEqual(cursor2.search_near(), wiredtiger.WT_NOTFOUND)
+ 
+-        # Assert it to have only incremented the skipped statistic ~26*2 times.
++        # Assert it to have only incremented the skipped statistic ~26 times.
+         prefix_skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100)
+-        self.assertGreaterEqual(prefix_skip_count - skip_count, 26*2)
++        self.assertGreaterEqual(prefix_skip_count - skip_count, 26)
+         skip_count = prefix_skip_count
+ 
+-        # Here we should've hit the prefix fast path code twice. Plus the time we already did.
+-        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 2+1)
++        # Here we should have hit the prefix fast path code twice, as we have called prefix
++        # search near twice, both of which should have early exited when going forwards.
++        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 2)
+ 
+         cursor2.close()
+         cursor2 = session2.open_cursor(uri)
+@@ -192,19 +193,20 @@ def test_unique_index_case(self):
+         cursor2.search_near()
+ 
+         skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100)
+-        # This should be equal to roughly key_count * 2 as we're going to traverse most of the
+-        # range forward, and then the whole range backwards.
+-        self.assertGreater(skip_count, key_count * 2)
++        # This should be slightly greater than key_count as we're going to traverse most of the
++        # range forwards.
++        self.assertGreater(skip_count, key_count)
++        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 0)
+ 
+         cursor2.reconfigure("prefix_search=true")
+         cursor2.set_key('cc')
+-        cursor2.search_near()
+-        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 2)
++        self.assertEqual(cursor2.search_near(), wiredtiger.WT_NOTFOUND)
++        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 1)
+ 
+         # This still isn't visible to our older reader and as such we expect this statistic to
+-        # increment twice.
++        # increment again.
+         self.unique_insert(cursor2, 'cc', cc_id, keys)
+-        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 4)
++        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths), 2)
+ 
+     # In order for prefix key fast pathing to work we rely on some guarantees provided by row
+     # search. Test some of the guarantees.
+@@ -297,34 +299,38 @@ def test_prepared(self):
+         # Search near for the "aa" part of the range.
+         cursor2 = session2.open_cursor(uri)
+         cursor2.set_key('c')
+-        cursor2.search_near()
++        self.assertEqual(cursor2.search_near(), wiredtiger.WT_NOTFOUND)
+ 
+         skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100, session2)
+-        # This should be equal to roughly key_count * 2 as we're going to traverse the whole
+-        # range forward, and then the whole range backwards.
++        # This should be equal to roughly key_count as we're going to traverse the whole
++        # range forwards.
+         self.assertGreater(skip_count, key_count)
+ 
+         cursor2.reconfigure("prefix_search=true")
+         cursor2.set_key('c')
+-        cursor2.search_near()
++        self.assertEqual(cursor2.search_near(), wiredtiger.WT_NOTFOUND)
+ 
+         prefix_skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100, session2)
+-        self.assertEqual(prefix_skip_count - skip_count, 3)
++        # We expect to traverse one entry and have a buffer to account for anomalies.
++        self.assertEqual(prefix_skip_count - skip_count, 2)
+         skip_count = prefix_skip_count
+ 
+-        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths, session2), 2)
++        # We early exit here as "cc" is not the last key. 
++        self.assertEqual(self.get_stat(stat.conn.cursor_search_near_prefix_fast_paths, session2), 1)
+ 
+         session2.rollback_transaction()
+         session2.begin_transaction('ignore_prepare=true')
+         cursor4 = session2.open_cursor(uri)
+         cursor4.reconfigure("prefix_search=true")
+         cursor4.set_key('c')
+-        cursor4.search_near()
++        self.assertEqual(cursor4.search_near(), 1)
+         prefix_skip_count = self.get_stat(stat.conn.cursor_next_skip_lt_100, session2)
++        # We expect to traverse one entry and have a buffer to account for anomalies.
+         self.assertEqual(prefix_skip_count - skip_count, 2)
+         skip_count = prefix_skip_count
+ 
+         cursor4.reconfigure("prefix_search=false")
+         cursor4.set_key('c')
+-        cursor4.search_near()
++        ret = cursor4.search_near()
++        self.assertTrue(ret == -1 or ret == 1)
+         self.assertEqual(self.get_stat(stat.conn.cursor_next_skip_lt_100, session2) - skip_count, 2)
+diff --git a/test/suite/test_search_near04.py b/test/suite/test_search_near04.py
+new file mode 100644
+index 00000000000..4080ae82449
+--- /dev/null
++++ b/test/suite/test_search_near04.py
+@@ -0,0 +1,136 @@
++#!/usr/bin/env python
++#
++# Public Domain 2014-present MongoDB, Inc.
++# Public Domain 2008-2014 WiredTiger, Inc.
++#
++# This is free and unencumbered software released into the public domain.
++#
++# Anyone is free to copy, modify, publish, use, compile, sell, or
++# distribute this software, either in source code form or as a compiled
++# binary, for any purpose, commercial or non-commercial, and by any
++# means.
++#
++# In jurisdictions that recognize copyright laws, the author or authors
++# of this software dedicate any and all copyright interest in the
++# software to the public domain. We make this dedication for the benefit
++# of the public at large and to the detriment of our heirs and
++# successors. We intend this dedication to be an overt act of
++# relinquishment in perpetuity of all present and future rights to this
++# software under copyright law.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++# IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
++# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++# OTHER DEALINGS IN THE SOFTWARE.
++#
++
++import wttest
++from wtscenario import make_scenarios
++
++# test_search_near04.py
++# This test checks that a search_near call with the prefix key
++# configuration will correctly find a key even in cases where the key
++# range is split across multiple pages.
++class test_search_near04(wttest.WiredTigerTestCase):
++    key_format_values = [
++        ('var_string', dict(key_format='S')),
++        ('byte_array', dict(key_format='u')),
++    ]
++
++    scenarios = make_scenarios(key_format_values)
++
++    def check_key(self, key):
++        if self.key_format == 'u':
++            return key.encode()
++        else:
++            return key
++
++    def test_search_near(self):
++        uri = 'table:test_search_near'
++        self.session.create(uri, 'key_format={},value_format=S'.format(self.key_format))
++
++        # Make the keys big enough to span over multiple pages.
++        # key_size can be set to to a lower value so only one page is used and search_near works.
++        key_size = 200
++
++        cursor = self.session.open_cursor(uri)
++        cursor2 = self.session.open_cursor(uri, None, "debug=(release_evict=true)")
++        
++        # Basic character array.
++        l = "abcdefghijklmnopqrstuvwxyz"
++
++        # Insert keys aaa -> aaz with timestamp 200.
++        prefix = "aa"
++        self.session.begin_transaction()
++        for k in range (0, 25):
++            key = prefix + l[k]
++            cursor[key * key_size] = key * key_size
++        self.session.commit_transaction('commit_timestamp=' + self.timestamp_str(200))
++
++        # Insert key aaz with timestamp 50.
++        self.session.begin_transaction()
++        key = prefix + "z"
++        cursor[key * key_size] = key * key_size
++        self.session.commit_transaction('commit_timestamp=' + self.timestamp_str(50))
++
++        # Evict the whole range.
++        # If eviction is not performed, things stay in memory and it works fine.
++        for k in range (0, 26):
++            cursor2.set_key((prefix + l[k]) * key_size)
++            self.assertEqual(cursor2.search(), 0)
++            self.assertEqual(cursor2.reset(), 0)
++
++        # Start a transaction at timestamp 100, aaz should be the only key that is visible.
++        self.session.begin_transaction('read_timestamp=' + self.timestamp_str(100))
++        cursor3 = self.session.open_cursor(uri)
++
++        # Prefix search is disabled by default.
++        # Search near should always return the only visible key.
++        expected_key = "aaz" * key_size
++        cursor3.set_key("aa")
++        self.assertEqual(cursor3.search_near(), 1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("az")
++        self.assertEqual(cursor3.search_near(), -1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("aaz" * key_size)
++        self.assertEqual(cursor3.search_near(), 0)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("aazab")
++        self.assertEqual(cursor3.search_near(), -1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        # Enable prefix search.
++        cursor3.reconfigure("prefix_search=true")
++        
++        # The only visible key is aaz.
++        # If we try to do a search_near() with the prefixes "a" or "aa" without the changes
++        # introduced in WT-7912, we fail to find the key aaz although it is a valid result.
++        # This is because we traverse off the page and early exit before seeing the visible
++        # key that is on another page. However, if we specify "aaz" as a prefix, we are
++        # able to find that as we are traversing on the same page.
++        # All three of the prefixes "a", "aa" and "aaz" should lead us to find "aaz".
++        cursor3.set_key("a")
++        self.assertEqual(cursor3.search_near(), 1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("aa")
++        self.assertEqual(cursor3.search_near(), 1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("aaz")
++        self.assertEqual(cursor3.search_near(), 1)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.set_key("aaz" * key_size)
++        self.assertEqual(cursor3.search_near(), 0)
++        self.assertEqual(cursor3.get_key(), self.check_key(expected_key))
++
++        cursor3.close()
++        self.session.commit_transaction()

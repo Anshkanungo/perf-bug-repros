@@ -1,0 +1,226 @@
+{
+ "label": "RS3-4.4.1-W1",
+ "workload": "bruce",
+ "version": "4.4.1",
+ "gitVersion": "ad91a93a5a31e175f5cbf8c69561e788bbc55ce1",
+ "prefix_search": "absent",
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824.0,
+ "capped": false,
+ "cap_s": 300,
+ "insert_phase_s": 10.33,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.154,
+  "p90": 0.2071,
+  "p99": 2.1301699999999997,
+  "max": 2.986
+ },
+ "longest_call_s": 2.986,
+ "stalled_calls": 0,
+ "stalled_threads": 0,
+ "stalled": false,
+ "stalls": [],
+ "thread_end_s": {
+  "median": 10.129000000000001,
+  "max": 10.331
+ },
+ "straggler_gap_s": 0.2,
+ "first_call_s": {
+  "median": 0.542,
+  "max": 2.986
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 0.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 5423.0,
+  "forced_evict": 601.0,
+  "pages_read": 184.0,
+  "search_near": 4057928.0,
+  "next": 4098978.0,
+  "prev": 4083002.0,
+  "skip_next": 63793266.0,
+  "skip_prev": 38688302.0,
+  "prefix_exits": null,
+  "inserts": 2000000.0,
+  "ckpts": 0.0
+ },
+ "hs_misses": 0.0,
+ "hs_misses_stall_share": null,
+ "entries_skipped": 102481568.0,
+ "checkpoints": {
+  "checkpoints_completed": 0.0,
+  "seconds_with_checkpoint_running": 0,
+  "checkpoint_running_during_stalls": false,
+  "last_checkpoint_ms_max": 0.0
+ },
+ "alone_window": null,
+ "docker": {
+  "other_cpu_median_pct": 10.02,
+  "other_cpu_peak_pct": 17.119999999999997,
+  "other_samples": 12,
+  "mongod_cpu_peak_pct": 1031.79
+ },
+ "noisy": false,
+ "other_cpu_peak_first10s_pct": 17.119999999999997,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "Battery Power",
+  "end": "Battery Power",
+  "low_power_mode_start": 1,
+  "how": "recorded by run.sh",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": false,
+ "stall_type": "none",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 1996,
+   "ninserted": 1000,
+   "ctx": "conn13",
+   "bytesRead": null,
+   "cacheWaitMicros": 1919139
+  },
+  {
+   "ms": 2017,
+   "ninserted": 1000,
+   "ctx": "conn9",
+   "bytesRead": 18725,
+   "cacheWaitMicros": 1915457
+  },
+  {
+   "ms": 1971,
+   "ninserted": 1000,
+   "ctx": "conn17",
+   "bytesRead": 14164,
+   "cacheWaitMicros": 1901127
+  },
+  {
+   "ms": 2047,
+   "ninserted": 1000,
+   "ctx": "conn18",
+   "bytesRead": null,
+   "cacheWaitMicros": 1858339
+  },
+  {
+   "ms": 1979,
+   "ninserted": 1000,
+   "ctx": "conn16",
+   "bytesRead": 3664,
+   "cacheWaitMicros": 1771417
+  },
+  {
+   "ms": 2047,
+   "ninserted": 1000,
+   "ctx": "conn19",
+   "bytesRead": null,
+   "cacheWaitMicros": 1888739
+  },
+  {
+   "ms": 1895,
+   "ninserted": 1000,
+   "ctx": "conn11",
+   "bytesRead": null,
+   "cacheWaitMicros": 1836499
+  },
+  {
+   "ms": 2045,
+   "ninserted": 1000,
+   "ctx": "conn24",
+   "bytesRead": null,
+   "cacheWaitMicros": 1127042
+  },
+  {
+   "ms": 2024,
+   "ninserted": 1000,
+   "ctx": "conn12",
+   "bytesRead": null,
+   "cacheWaitMicros": 1883058
+  },
+  {
+   "ms": 2052,
+   "ninserted": 1000,
+   "ctx": "conn8",
+   "bytesRead": null,
+   "cacheWaitMicros": 1896647
+  },
+  {
+   "ms": 2845,
+   "ninserted": 1000,
+   "ctx": "conn15",
+   "bytesRead": null,
+   "cacheWaitMicros": 285082
+  },
+  {
+   "ms": 2028,
+   "ninserted": 1000,
+   "ctx": "conn10",
+   "bytesRead": null,
+   "cacheWaitMicros": 1911175
+  },
+  {
+   "ms": 2039,
+   "ninserted": 1000,
+   "ctx": "conn25",
+   "bytesRead": null,
+   "cacheWaitMicros": 1315583
+  },
+  {
+   "ms": 2087,
+   "ninserted": 1000,
+   "ctx": "conn23",
+   "bytesRead": null,
+   "cacheWaitMicros": 1861804
+  },
+  {
+   "ms": 2045,
+   "ninserted": 1000,
+   "ctx": "conn14",
+   "bytesRead": null,
+   "cacheWaitMicros": 1616813
+  },
+  {
+   "ms": 2104,
+   "ninserted": 1000,
+   "ctx": "conn26",
+   "bytesRead": null,
+   "cacheWaitMicros": 1035337
+  },
+  {
+   "ms": 2052,
+   "ninserted": 1000,
+   "ctx": "conn20",
+   "bytesRead": null,
+   "cacheWaitMicros": 1677124
+  },
+  {
+   "ms": 2067,
+   "ninserted": 1000,
+   "ctx": "conn27",
+   "bytesRead": null,
+   "cacheWaitMicros": 1905477
+  },
+  {
+   "ms": 2076,
+   "ninserted": 1000,
+   "ctx": "conn22",
+   "bytesRead": null,
+   "cacheWaitMicros": 1905673
+  },
+  {
+   "ms": 2927,
+   "ninserted": 1000,
+   "ctx": "conn21",
+   "bytesRead": null,
+   "cacheWaitMicros": 194171
+  }
+ ]
+}

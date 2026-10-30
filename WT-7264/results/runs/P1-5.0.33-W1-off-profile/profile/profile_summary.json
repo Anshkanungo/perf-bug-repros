@@ -1,0 +1,688 @@
+{
+ "samples_total": 98103,
+ "samples_by_thread": [
+  [
+   "conn*",
+   92190
+  ],
+  [
+   "mongod",
+   5782
+  ],
+  [
+   "ftdc",
+   61
+  ],
+  [
+   "JournalFlusher",
+   43
+  ],
+  [
+   "listener",
+   9
+  ],
+  [
+   "Service.Fixed-0",
+   9
+  ],
+  [
+   "Backgro.kSource",
+   6
+  ],
+  [
+   "FlowCon.fresher",
+   2
+  ],
+  [
+   "Timesta.Monitor",
+   1
+  ]
+ ],
+ "recording_epoch": [
+  1793157716.001575,
+  1793157755.950046
+ ],
+ "stall_calls": [
+  {
+   "thread": 8,
+   "batch": 0,
+   "start": 1793157723.707,
+   "end": 1793158013.844,
+   "lat_s": 290.137,
+   "returned": true,
+   "alone_window": [
+    1793157731.178,
+    1793157755.95
+   ],
+   "stuck_tids": [
+    216,
+    215
+   ],
+   "alone_window_samples_by_tid": {
+    "216": 24598,
+    "215": 24588,
+    "68": 15,
+    "218": 10
+   }
+  },
+  {
+   "thread": 7,
+   "batch": 0,
+   "start": 1793157723.708,
+   "end": null,
+   "lat_s": null,
+   "returned": false,
+   "alone_window": [
+    1793157731.178,
+    1793157755.95
+   ],
+   "stuck_tids": [
+    216,
+    215
+   ],
+   "alone_window_samples_by_tid": {
+    "216": 24598,
+    "215": 24588,
+    "68": 15,
+    "218": 10
+   }
+  }
+ ],
+ "stuck_method": "client log: insertMany calls >= 3.0 s; threads >= 30% on-CPU while alone",
+ "stuck_threads": [
+  {
+   "tid": 216,
+   "window_epoch": [
+    1793157723.707,
+    1793157755.95
+   ]
+  },
+  {
+   "tid": 215,
+   "window_epoch": [
+    1793157723.707,
+    1793157755.95
+   ]
+  }
+ ],
+ "stuck": {
+  "samples": 59978,
+  "focus": [
+   [
+    "mongo::CollectionImpl::insertDocuments",
+    59978,
+    100.0
+   ],
+   [
+    "mongo::WiredTigerIndex::insert",
+    59974,
+    100.0
+   ],
+   [
+    "mongo::WiredTigerIndexUnique::_insert",
+    59973,
+    100.0
+   ],
+   [
+    "mongo::WiredTigerIndexUnique::_keyExists",
+    59948,
+    99.9
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<...>",
+    59948,
+    99.9
+   ],
+   [
+    "__curfile_search_near",
+    44491,
+    74.2
+   ],
+   [
+    "__wt_btcur_search_near",
+    44377,
+    74.0
+   ],
+   [
+    "__curfile_next",
+    19354,
+    32.3
+   ],
+   [
+    "__curfile_prev",
+    0,
+    0.0
+   ],
+   [
+    "__wt_btcur_next[_prefix]",
+    40686,
+    67.8
+   ],
+   [
+    "__wt_btcur_prev[_prefix]",
+    23475,
+    39.1
+   ],
+   [
+    "__cursor_row_next",
+    0,
+    0.0
+   ],
+   [
+    "__cursor_row_prev",
+    0,
+    0.0
+   ],
+   [
+    "__wt_txn_read",
+    53648,
+    89.4
+   ],
+   [
+    "__wt_txn_read_upd_list",
+    835,
+    1.4
+   ],
+   [
+    "__wt_hs_find_upd",
+    49129,
+    81.9
+   ],
+   [
+    "any history-store cursor function (__curhs_* / __wt_hs_*)",
+    49129,
+    81.9
+   ],
+   [
+    "__cursor_row_slot_key_return",
+    0,
+    0.0
+   ],
+   [
+    "__wt_lex_compare*",
+    0,
+    0.0
+   ],
+   [
+    "__wt_txn_upd_value_visible_all",
+    0,
+    0.0
+   ],
+   [
+    "__wt_row_search",
+    2500,
+    4.2
+   ],
+   [
+    "__wt_page_in_func",
+    4110,
+    6.9
+   ],
+   [
+    "__evict_force_check",
+    0,
+    0.0
+   ],
+   [
+    "__wt_cache_eviction_worker",
+    85,
+    0.1
+   ],
+   [
+    "KeyString::sizeWithoutRecordId*AtEnd",
+    0,
+    0.0
+   ]
+  ],
+  "leaves": [
+   [
+    "__wt_session_gen_leave",
+    3847,
+    6.4
+   ],
+   [
+    "__wt_readlock",
+    3323,
+    5.5
+   ],
+   [
+    "__wt_hazard_set_func",
+    3173,
+    5.3
+   ],
+   [
+    "__wt_struct_packv",
+    2913,
+    4.9
+   ],
+   [
+    "__wt_btcur_next_prefix",
+    2877,
+    4.8
+   ],
+   [
+    "__wt_config_gets_def",
+    2725,
+    4.5
+   ],
+   [
+    "__wt_scr_alloc_func",
+    2720,
+    4.5
+   ],
+   [
+    "__wt_btcur_prev",
+    2532,
+    4.2
+   ],
+   [
+    "__wt_value_return_buf",
+    2357,
+    3.9
+   ],
+   [
+    "__wt_txn_read",
+    2151,
+    3.6
+   ],
+   [
+    "__ctype_b_loc",
+    2036,
+    3.4
+   ],
+   [
+    "__wt_cursor_cache",
+    2029,
+    3.4
+   ]
+  ],
+  "stacks": [
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_search_near -> __wt_btcur_search_near -> __wt_btcur_prev",
+    1335,
+    2.2
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_search_near -> __wt_btcur_search_near -> __wt_btcur_next_prefix",
+    1319,
+    2.2
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_next -> __wt_btcur_next_prefix",
+    1257,
+    2.1
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_search_near -> __wt_btcur_search_near -> __wt_btcur_prev -> __wt_txn_read -> __wt_hs_find_upd -> __wt_curhs_open -> __curhs_file_cursor_open -> __wt_open_cursor -> __wt_cursor_cache_get -> __curfile_reopen -> __wt_session_lock_dhandle -> __wt_readlock",
+    1118,
+    1.9
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_search_near -> __wt_btcur_search_near -> __wt_btcur_next_prefix -> __wt_txn_read -> __wt_hs_find_upd -> __wt_curhs_open -> __curhs_file_cursor_open -> __wt_open_cursor -> __wt_cursor_cache_get -> __curfile_reopen -> __wt_session_lock_dhandle -> __wt_readlock",
+    1118,
+    1.9
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<mongo::WiredTigerIndexUnique::_keyExists -> __curfile_next -> __wt_btcur_next_prefix -> __wt_txn_read -> __wt_hs_find_upd -> __wt_curhs_open -> __curhs_file_cursor_open -> __wt_open_cursor -> __wt_cursor_cache_get -> __curfile_reopen -> __wt_session_lock_dhandle -> __wt_readlock",
+    1086,
+    1.8
+   ]
+  ],
+  "tree_keyExists": [
+   [
+    0,
+    "__curfile_search_near",
+    40594
+   ],
+   [
+    1,
+    "__wt_btcur_search_near",
+    40594
+   ],
+   [
+    2,
+    "__wt_btcur_next_prefix",
+    20769
+   ],
+   [
+    3,
+    "__wt_txn_read",
+    18665
+   ],
+   [
+    4,
+    "__wt_hs_find_upd",
+    16988
+   ],
+   [
+    2,
+    "__wt_btcur_prev",
+    19825
+   ],
+   [
+    3,
+    "__wt_txn_read",
+    17502
+   ],
+   [
+    4,
+    "__wt_hs_find_upd",
+    16206
+   ],
+   [
+    0,
+    "__curfile_next",
+    19354
+   ],
+   [
+    1,
+    "__wt_btcur_next_prefix",
+    19354
+   ],
+   [
+    2,
+    "__wt_txn_read",
+    17481
+   ],
+   [
+    3,
+    "__wt_hs_find_upd",
+    15935
+   ]
+  ],
+  "samples_in_keyExists": 59948,
+  "inside_hs_find_upd": {
+   "samples": 49129,
+   "children": [
+    [
+     "__wt_curhs_open",
+     16120,
+     32.8
+    ],
+    [
+     "__curhs_search_near_helper",
+     15815,
+     32.2
+    ],
+    [
+     "__curhs_set_key",
+     9095,
+     18.5
+    ],
+    [
+     "__curhs_close",
+     7360,
+     15.0
+    ],
+    [
+     "(self)",
+     521,
+     1.1
+    ],
+    [
+     "__wt_free_update_list",
+     87,
+     0.2
+    ],
+    [
+     "__wt_update_vector_free",
+     71,
+     0.1
+    ],
+    [
+     "__wt_update_vector_init",
+     58,
+     0.1
+    ]
+   ]
+  },
+  "samples_per_second": [
+   1313,
+   1386,
+   1420,
+   1406,
+   1437,
+   1615,
+   1415,
+   1856,
+   1998,
+   1698,
+   1998,
+   1998,
+   1994,
+   1997,
+   1998,
+   1998,
+   1998,
+   1998,
+   1998,
+   1998,
+   1997,
+   1998,
+   1998,
+   1998,
+   1998,
+   1998,
+   1998,
+   1998,
+   1997,
+   1998,
+   1998,
+   1998,
+   485
+  ]
+ },
+ "all_conn": {
+  "samples": 92190,
+  "focus": [
+   [
+    "mongo::CollectionImpl::insertDocuments",
+    89744,
+    97.3
+   ],
+   [
+    "mongo::WiredTigerIndex::insert",
+    84585,
+    91.8
+   ],
+   [
+    "mongo::WiredTigerIndexUnique::_insert",
+    81023,
+    87.9
+   ],
+   [
+    "mongo::WiredTigerIndexUnique::_keyExists",
+    63653,
+    69.0
+   ],
+   [
+    "mongo::wiredTigerPrepareConflictRetry<...>",
+    63433,
+    68.8
+   ],
+   [
+    "__curfile_search_near",
+    46399,
+    50.3
+   ],
+   [
+    "__wt_btcur_search_near",
+    46239,
+    50.2
+   ],
+   [
+    "__curfile_next",
+    19392,
+    21.0
+   ],
+   [
+    "__curfile_prev",
+    1470,
+    1.6
+   ],
+   [
+    "__wt_btcur_next[_prefix]",
+    41121,
+    44.6
+   ],
+   [
+    "__wt_btcur_prev[_prefix]",
+    25020,
+    27.1
+   ],
+   [
+    "__cursor_row_next",
+    0,
+    0.0
+   ],
+   [
+    "__cursor_row_prev",
+    0,
+    0.0
+   ],
+   [
+    "__wt_txn_read",
+    53993,
+    58.6
+   ],
+   [
+    "__wt_txn_read_upd_list",
+    1107,
+    1.2
+   ],
+   [
+    "__wt_hs_find_upd",
+    49129,
+    53.3
+   ],
+   [
+    "any history-store cursor function (__curhs_* / __wt_hs_*)",
+    49134,
+    53.3
+   ],
+   [
+    "__cursor_row_slot_key_return",
+    0,
+    0.0
+   ],
+   [
+    "__wt_lex_compare*",
+    0,
+    0.0
+   ],
+   [
+    "__wt_txn_upd_value_visible_all",
+    140,
+    0.2
+   ],
+   [
+    "__wt_row_search",
+    7332,
+    8.0
+   ],
+   [
+    "__wt_page_in_func",
+    5150,
+    5.6
+   ],
+   [
+    "__evict_force_check",
+    0,
+    0.0
+   ],
+   [
+    "__wt_cache_eviction_worker",
+    1088,
+    1.2
+   ],
+   [
+    "KeyString::sizeWithoutRecordId*AtEnd",
+    11,
+    0.0
+   ]
+  ],
+  "leaves": [
+   [
+    "__wt_row_modify",
+    8913,
+    9.7
+   ],
+   [
+    "__wt_session_gen_leave",
+    4026,
+    4.4
+   ],
+   [
+    "__wt_hazard_set_func",
+    3825,
+    4.1
+   ],
+   [
+    "__wt_readlock",
+    3338,
+    3.6
+   ],
+   [
+    "__wt_row_search",
+    3076,
+    3.3
+   ],
+   [
+    "__wt_btcur_next_prefix",
+    2955,
+    3.2
+   ],
+   [
+    "__wt_struct_packv",
+    2928,
+    3.2
+   ],
+   [
+    "__wt_config_gets_def",
+    2729,
+    3.0
+   ],
+   [
+    "__wt_scr_alloc_func",
+    2727,
+    3.0
+   ],
+   [
+    "__wt_btcur_prev",
+    2633,
+    2.9
+   ],
+   [
+    "__ctype_b_loc",
+    2619,
+    2.8
+   ],
+   [
+    "__wt_value_return_buf",
+    2545,
+    2.8
+   ]
+  ]
+ },
+ "stuck_offcpu_ms": {
+  "cache eviction wait (__wt_cache_eviction_worker)": 67.3,
+  "mutex/spinlock": 0.0,
+  "_waits_without_recorded_wakeup": {
+   "count": 224,
+   "upper_bound_ms": 1936.6
+  },
+  "_switch_outs_by_state": {
+   "215:R": 2431,
+   "215:R+": 10,
+   "215:S": 140,
+   "215:T": 2,
+   "215:t": 1,
+   "216:D": 1,
+   "216:R": 5285,
+   "216:R+": 62,
+   "216:S": 125,
+   "216:T": 2,
+   "216:t": 1
+  }
+ }
+}

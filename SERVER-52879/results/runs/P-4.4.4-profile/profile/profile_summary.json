@@ -1,0 +1,281 @@
+{
+ "oncpu": {
+  "samples_total": 60304,
+  "samples_by_thread": [
+   [
+    "mongod",
+    33254
+   ],
+   [
+    "conn*",
+    21865
+   ],
+   [
+    "WTCheck.tThread",
+    4728
+   ],
+   [
+    "WTJourn.Flusher",
+    153
+   ],
+   [
+    "ftdc",
+    151
+   ],
+   [
+    "Backgro.kSource",
+    92
+   ],
+   [
+    "WTIdleS.Sweeper",
+    51
+   ],
+   [
+    "TTLMonitor",
+    3
+   ],
+   [
+    "Periodi.kRunner",
+    3
+   ],
+   [
+    "Timesta.Monitor",
+    2
+   ],
+   [
+    "FlowCon.fresher",
+    2
+   ]
+  ],
+  "sweeper_samples": 51,
+  "sweep_samples": 51,
+  "focus_inclusive_pct": {
+   "mongo::WiredTigerSessionCache::closeExpiredIdleSessions": 100.0,
+   "mongo::WiredTigerSession::~WiredTigerSession": 100.0,
+   "__session_close": 100.0,
+   "__session_close_cached_cursors": 90.2,
+   "__curfile_close": 27.5,
+   "__wt_cursor_close": 15.7,
+   "__wt_free_int": 7.8,
+   "__wt_session_close_cache": 9.8,
+   "__session_discard_dhandle": 9.8
+  },
+  "leaf_top": [
+   [
+    "__wt_cursor_reopen",
+    27.5
+   ],
+   [
+    "__curfile_reopen",
+    19.6
+   ],
+   [
+    "__wt_readlock",
+    13.7
+   ],
+   [
+    "__wt_readunlock",
+    9.8
+   ],
+   [
+    "tcmalloc::CentralFreeList::ReleaseToSpans",
+    7.8
+   ],
+   [
+    "__wt_free_int",
+    7.8
+   ],
+   [
+    "tc_deletearray_aligned_nothrow",
+    3.9
+   ],
+   [
+    "__session_discard_dhandle",
+    3.9
+   ],
+   [
+    "__curfile_close",
+    2.0
+   ],
+   [
+    "__session_close_cursors.isra.6",
+    2.0
+   ],
+   [
+    "__wt_cursor_close",
+    2.0
+   ]
+  ],
+  "stacks_top": [
+   [
+    "__wt_cursor_reopen <- __curfile_reopen <- __session_close_cursors.isra.6 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    14
+   ],
+   [
+    "__curfile_reopen <- __session_close_cursors.isra.6 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    10
+   ],
+   [
+    "__wt_readlock <- __wt_session_lock_dhandle <- __curfile_reopen <- __session_close_cursors.isra.6 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    7
+   ],
+   [
+    "__wt_readunlock <- __wt_session_release_dhandle <- __curfile_close <- __session_close_cursors.isra.6 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    5
+   ],
+   [
+    "__wt_free_int <- __wt_cursor_close <- __curfile_close <- __session_close_cursors.isra.6 <- __session_close_cached_cursors <- __wt_session_close_internal <- __session_close <- mongo::WiredTigerSession::~WiredTigerSession <- mongo::WiredTigerSessionCache::closeExpiredIdleSessions",
+    3
+   ]
+  ],
+  "windows": [
+   {
+    "start": 10942.792101,
+    "end": 10942.83515,
+    "dur_ms": 44.0,
+    "samples": 44,
+    "start_epoch": 1793151328.3363,
+    "end_epoch": 1793151328.3793
+   },
+   {
+    "start": 10992.836937,
+    "end": 10992.842942,
+    "dur_ms": 7.0,
+    "samples": 7,
+    "start_epoch": 1793151378.3811,
+    "end_epoch": 1793151378.3871
+   }
+  ]
+ },
+ "offcpu": {
+  "switch_events": 252091,
+  "wakeup_events": 20787,
+  "waits": 248565,
+  "waits_exact": 75,
+  "during_sweeps": [
+   {
+    "category": "condition variable wait",
+    "waits": 24,
+    "threads": 3,
+    "total_ms": 20276.3,
+    "max_ms": 10000.2,
+    "exact": 0
+   },
+   {
+    "category": "network recv (idle connection)",
+    "waits": 75,
+    "threads": 64,
+    "total_ms": 7881.4,
+    "max_ms": 109.8,
+    "exact": 0
+   }
+  ],
+  "all": [
+   {
+    "category": "network recv (idle connection)",
+    "waits": 94880,
+    "threads": 102,
+    "total_ms": 10181081.3,
+    "max_ms": 10010.9,
+    "exact": 0
+   },
+   {
+    "category": "condition variable wait",
+    "waits": 81301,
+    "threads": 81,
+    "total_ms": 1679524.0,
+    "max_ms": 60000.2,
+    "exact": 56
+   },
+   {
+    "category": "sleep",
+    "waits": 24,
+    "threads": 1,
+    "total_ms": 96005.5,
+    "max_ms": 4000.7,
+    "exact": 0
+   },
+   {
+    "category": "poll/epoll",
+    "waits": 941,
+    "threads": 12,
+    "total_ms": 91510.5,
+    "max_ms": 9910.8,
+    "exact": 0
+   },
+   {
+    "category": "fsync/IO",
+    "waits": 57140,
+    "threads": 2,
+    "total_ms": 18452.7,
+    "max_ms": 139.0,
+    "exact": 7
+   },
+   {
+    "category": "other mutex wait",
+    "waits": 12845,
+    "threads": 100,
+    "total_ms": 3345.5,
+    "max_ms": 65.3,
+    "exact": 11
+   },
+   {
+    "category": "IO",
+    "waits": 814,
+    "threads": 3,
+    "total_ms": 1452.6,
+    "max_ms": 34.8,
+    "exact": 0
+   },
+   {
+    "category": "other",
+    "waits": 608,
+    "threads": 53,
+    "total_ms": 419.8,
+    "max_ms": 16.1,
+    "exact": 1
+   },
+   {
+    "category": "mutex wait in WiredTigerSessionCache::getSession",
+    "waits": 11,
+    "threads": 11,
+    "total_ms": 2.2,
+    "max_ms": 0.4,
+    "exact": 0
+   },
+   {
+    "category": "mutex wait in WiredTigerSessionCache::releaseSession",
+    "waits": 1,
+    "threads": 1,
+    "total_ms": 0.1,
+    "max_ms": 0.1,
+    "exact": 0
+   }
+  ],
+  "per_window": [
+   {
+    "threads_blocked_on_session_cache": 0,
+    "max_wait_ms": 0.0,
+    "exact_wakeups": 0
+   },
+   {
+    "threads_blocked_on_session_cache": 0,
+    "max_wait_ms": 0.0,
+    "exact_wakeups": 0
+   }
+  ],
+  "example_blocked": null
+ },
+ "client": [
+  {
+   "ops_overlapping": 49,
+   "ops_ge_10ms": 0,
+   "max_latency_ms": 1.0
+  },
+  {
+   "ops_overlapping": 15,
+   "ops_ge_10ms": 0,
+   "max_latency_ms": 1.0
+  }
+ ]
+}

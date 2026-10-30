@@ -1,0 +1,114 @@
+{
+ "label": "P1-5.0.33-W1-off-profile",
+ "workload": "bruce",
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "prefix_search": false,
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": true,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824,
+ "capped": true,
+ "cap_s": 300,
+ "insert_phase_s": 300.0,
+ "threads": 20,
+ "calls": 951,
+ "calls_returned": 950,
+ "docs_inserted_server": 1900320.0,
+ "call_latency_s": {
+  "p50": 0.119,
+  "p90": 0.241,
+  "p99": 0.34303999999999996,
+  "max": 290.137
+ },
+ "longest_call_s": 299.998,
+ "stalled_calls": 2,
+ "stalled_threads": 2,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 7,
+   "batch": 0,
+   "start_s": 0.002,
+   "dur_s": 300.0,
+   "returned": false
+  },
+  {
+   "thread": 8,
+   "batch": 0,
+   "start_s": 0.001,
+   "dur_s": 290.14,
+   "returned": true
+  }
+ ],
+ "thread_end_s": {
+  "median": 7.28,
+  "max": 291.347
+ },
+ "straggler_gap_s": 284.07,
+ "first_call_s": {
+  "median": 0.1725,
+  "max": 299.998
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 645846154.0,
+  "hs_inserts": 1.0,
+  "app_evicted": 309.0,
+  "forced_evict": 397.0,
+  "pages_read": 4012.0,
+  "search_near": 649646941.0,
+  "next": 649848691.0,
+  "prev": 638845256.0,
+  "skip_next": 441794308.0,
+  "skip_prev": 226700464.0,
+  "prefix_exits": 0.0,
+  "inserts": 1900320.0,
+  "ckpts": 5.0
+ },
+ "hs_misses": 645846154.0,
+ "hs_misses_stall_share": 0.9947232386863452,
+ "entries_skipped": 668494772.0,
+ "checkpoints": {
+  "checkpoints_completed": 5.0,
+  "seconds_with_checkpoint_running": 1,
+  "checkpoint_running_during_stalls": true,
+  "last_checkpoint_ms_max": 203.0
+ },
+ "alone_window": {
+  "window_s": [
+   7.5,
+   300.0
+  ],
+  "conn_threads_ge90_median": 2.0,
+  "mongod_cpu_cores_median": 2.0
+ },
+ "docker": {
+  "other_cpu_median_pct": 9.129999999999999,
+  "other_cpu_peak_pct": 655.93,
+  "other_samples": 301,
+  "mongod_cpu_peak_pct": 735.63
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 391.59999999999997,
+ "noisy_onset": true,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "AC Power",
+  "end": "AC Power",
+  "how": "pmset -g log",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": true,
+ "stall_type": "history-store walk",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 290099,
+   "ninserted": 1000,
+   "ctx": "conn13",
+   "bytesRead": 27414142,
+   "cacheWaitMicros": 913873
+  }
+ ]
+}

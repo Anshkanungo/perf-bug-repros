@@ -1,0 +1,11 @@
+pid: 7
+mode: at:9
+busy_s: 2.0
+result: captured
+frozen_with_sigstop: True
+trigger_epoch_s: 1793158088.5462925
+trigger_s_after_script_start: 9.0
+trigger: {"mode": "at:9"}
+freeze_latency_ms: 0.2
+attach_done_ms_after_trigger: 98.6
+process_paused_ms: 168.1

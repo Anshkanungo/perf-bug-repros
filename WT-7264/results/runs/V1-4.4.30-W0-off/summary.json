@@ -1,0 +1,183 @@
+{
+ "label": "V1-4.4.30-W0-off",
+ "workload": "bruce",
+ "version": "4.4.30",
+ "gitVersion": "4d7fa6a6260d25c5caa971dce10561690cb79dea",
+ "prefix_search": false,
+ "sync_start": false,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824.0,
+ "capped": true,
+ "cap_s": 300,
+ "insert_phase_s": 300.0,
+ "threads": 20,
+ "calls": 366,
+ "calls_returned": 353,
+ "docs_inserted_server": 702500.0,
+ "call_latency_s": {
+  "p50": 0.072,
+  "p90": 0.1178,
+  "p99": 0.25344000000000005,
+  "max": 1.068
+ },
+ "longest_call_s": 299.92,
+ "stalled_calls": 13,
+ "stalled_threads": 13,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 3,
+   "batch": 0,
+   "start_s": 0.08,
+   "dur_s": 299.92,
+   "returned": false
+  },
+  {
+   "thread": 4,
+   "batch": 0,
+   "start_s": 0.082,
+   "dur_s": 299.92,
+   "returned": false
+  },
+  {
+   "thread": 12,
+   "batch": 0,
+   "start_s": 0.097,
+   "dur_s": 299.9,
+   "returned": false
+  },
+  {
+   "thread": 14,
+   "batch": 0,
+   "start_s": 0.103,
+   "dur_s": 299.9,
+   "returned": false
+  },
+  {
+   "thread": 15,
+   "batch": 0,
+   "start_s": 0.121,
+   "dur_s": 299.88,
+   "returned": false
+  },
+  {
+   "thread": 1,
+   "batch": 0,
+   "start_s": 0.124,
+   "dur_s": 299.88,
+   "returned": false
+  },
+  {
+   "thread": 18,
+   "batch": 0,
+   "start_s": 0.126,
+   "dur_s": 299.87,
+   "returned": false
+  },
+  {
+   "thread": 17,
+   "batch": 1,
+   "start_s": 0.13,
+   "dur_s": 299.87,
+   "returned": false
+  },
+  {
+   "thread": 13,
+   "batch": 0,
+   "start_s": 0.142,
+   "dur_s": 299.86,
+   "returned": false
+  },
+  {
+   "thread": 6,
+   "batch": 1,
+   "start_s": 0.152,
+   "dur_s": 299.85,
+   "returned": false
+  },
+  {
+   "thread": 9,
+   "batch": 0,
+   "start_s": 0.163,
+   "dur_s": 299.84,
+   "returned": false
+  },
+  {
+   "thread": 8,
+   "batch": 1,
+   "start_s": 0.166,
+   "dur_s": 299.83,
+   "returned": false
+  },
+  {
+   "thread": 10,
+   "batch": 0,
+   "start_s": 0.171,
+   "dur_s": 299.83,
+   "returned": false
+  }
+ ],
+ "thread_end_s": {
+  "median": 4.307,
+  "max": 4.948
+ },
+ "straggler_gap_s": 0.64,
+ "first_call_s": {
+  "median": 150.002,
+  "max": 299.92
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 472184302.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 107.0,
+  "forced_evict": 1630.0,
+  "pages_read": 1149.0,
+  "search_near": 473590078.0,
+  "next": 473790609.0,
+  "prev": 473590047.0,
+  "skip_next": 319251707.0,
+  "skip_prev": 238502764.0,
+  "prefix_exits": 0.0,
+  "inserts": 702500.0,
+  "ckpts": 5.0
+ },
+ "hs_misses": 472184302.0,
+ "hs_misses_stall_share": 0.9889860612096334,
+ "entries_skipped": 557754471.0,
+ "checkpoints": {
+  "checkpoints_completed": 5.0,
+  "seconds_with_checkpoint_running": 1,
+  "checkpoint_running_during_stalls": true,
+  "last_checkpoint_ms_max": 296.0
+ },
+ "alone_window": {
+  "window_s": [
+   4.9,
+   300.0
+  ],
+  "conn_threads_ge90_median": 4.0,
+  "mongod_cpu_cores_median": 9.92
+ },
+ "docker": {
+  "other_cpu_median_pct": 10.66,
+  "other_cpu_peak_pct": 655.18,
+  "other_samples": 300,
+  "mongod_cpu_peak_pct": 1081.0
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 190.42000000000002,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "AC Power",
+  "end": "AC Power",
+  "how": "pmset -g log",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": true,
+ "stall_type": "history-store walk",
+ "slow_inserts_ge_1s": []
+}

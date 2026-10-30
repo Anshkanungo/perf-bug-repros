@@ -1,0 +1,33 @@
+{
+ "version": "4.4.4",
+ "gitVersion": "8db30a63db1a9d84bdcad0c83369623f708e0397",
+ "allocator": "tcmalloc",
+ "buildEnvironment": {
+  "distarch": "aarch64",
+  "target_arch": "aarch64",
+  "target_os": "linux",
+  "cc": "/opt/mongodbtoolchain/v3/bin/gcc: gcc (GCC) 8.2.0",
+  "ccflags": "-march=armv8-a+crc -mtune=generic -fno-omit-frame-pointer -fno-strict-aliasing -fasynchronous-unwind-tables -ggdb -pthread -Wall -Wsign-compare -Wno-unknown-pragmas -Winvalid-pch -Werror -O2 -Wno-unused-local-typedefs -Wno-unused-function -Wno-deprecated-declarations -Wno-unused-const-variable -Wno-unused-but-set-variable -Wno-missing-braces -fstack-protector-strong -fno-builtin-memcmp"
+ },
+ "debug": false,
+ "wiredTigerSessionCloseIdleTimeSecs": 30,
+ "wiredTigerCursorCacheSize": -100,
+ "argv": [
+  "mongod",
+  "--bind_ip_all",
+  "--wiredTigerCacheSizeGB",
+  "1",
+  "--setParameter",
+  "wiredTigerSessionCloseIdleTimeSecs=30"
+ ],
+ "host": {
+  "os": {
+   "type": "Linux",
+   "name": "Ubuntu",
+   "version": "18.04"
+  },
+  "numCores": 10,
+  "memSizeMB": 7934,
+  "cpuArch": "aarch64"
+ }
+}

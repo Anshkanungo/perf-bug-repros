@@ -1,0 +1,107 @@
+{
+ "label": "pilot7-5.0.33-prefixoff-sync",
+ "workload": "bruce",
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "prefix_search": false,
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824,
+ "capped": false,
+ "cap_s": 600,
+ "insert_phase_s": 87.4,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.129,
+  "p90": 0.2441,
+  "p99": 0.3710799999999999,
+  "max": 83.013
+ },
+ "longest_call_s": 83.013,
+ "stalled_calls": 1,
+ "stalled_threads": 1,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 1,
+   "batch": 0,
+   "start_s": 3.005,
+   "dur_s": 83.01,
+   "returned": true
+  }
+ ],
+ "thread_end_s": {
+  "median": 10.748999999999999,
+  "max": 87.394
+ },
+ "straggler_gap_s": 76.65,
+ "first_call_s": {
+  "median": 0.14,
+  "max": 83.013
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 110901066.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 420.0,
+  "forced_evict": 287.0,
+  "pages_read": 2103.0,
+  "search_near": 114901067.0,
+  "next": 115102343.0,
+  "prev": 114901068.0,
+  "skip_next": 84020860.0,
+  "skip_prev": 88263925.0,
+  "prefix_exits": 0.0,
+  "inserts": 2000000.0,
+  "ckpts": 1.0
+ },
+ "hs_misses": 110901066.0,
+ "hs_misses_stall_share": 0.9849625521182998,
+ "entries_skipped": 172284785.0,
+ "checkpoints": {
+  "checkpoints_completed": 1.0,
+  "seconds_with_checkpoint_running": 0,
+  "checkpoint_running_during_stalls": false,
+  "last_checkpoint_ms_max": 56.0
+ },
+ "alone_window": {
+  "window_s": [
+   12.5,
+   86.0
+  ],
+  "conn_threads_ge90_median": 1.0,
+  "mongod_cpu_cores_median": 1.0
+ },
+ "docker": {
+  "other_cpu_median_pct": 8.76,
+  "other_cpu_peak_pct": 600.6999999999999,
+  "other_samples": 88,
+  "mongod_cpu_peak_pct": 652.32
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 50.459999999999994,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "Battery Power",
+  "end": "Battery Power",
+  "how": "pmset -g log",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": false,
+ "stall_type": "history-store walk",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 82985,
+   "ninserted": 1000,
+   "ctx": "conn12",
+   "bytesRead": 25696765,
+   "cacheWaitMicros": 1550538
+  }
+ ]
+}

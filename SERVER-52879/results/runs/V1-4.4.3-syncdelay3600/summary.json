@@ -1,0 +1,339 @@
+{
+ "label": "V1-4.4.3-syncdelay3600",
+ "version": "4.4.3",
+ "gitVersion": "913d6b62acfbb344dde1b116f4161360acd8fd13",
+ "driver": "shell",
+ "topology": "standalone",
+ "idle_timeout_s": 30,
+ "predicted_period_s": 40,
+ "collections": 1000,
+ "indexes": 10,
+ "threads": 100,
+ "insert_phase_s": 720.1,
+ "setup_s": 31.4,
+ "window_s": [
+  120,
+  719
+ ],
+ "ops_total": 680344,
+ "ops_per_s_window": 945.5,
+ "op_latency_ms_window": {
+  "p50": 1.0,
+  "p99": 2.0,
+  "p99_9": 26.0,
+  "max": 726.0
+ },
+ "per_second_max_ms": {
+  "median": 2.0,
+  "p99_5": 118.29999999999973,
+  "max": 726.0
+ },
+ "per_second_p99_ms_median": 1.0,
+ "spike_threshold_ms": 20.0,
+ "spike_events": 13,
+ "spike_peak_ms_median": 58.0,
+ "spike_slow_ops_median": 36.0,
+ "spike_threads_median": 36.0,
+ "intervals": {
+  "n_intervals": 12,
+  "median_s": 40.0685,
+  "iqr_s": [
+   32.92350000000006,
+   42.83125
+  ],
+  "min_s": 7.136999999999944,
+  "max_s": 140.08100000000002,
+  "intervals_s": [
+   40.06,
+   140.08,
+   27.25,
+   32.78,
+   40.12,
+   40.07,
+   50.97,
+   39.07,
+   7.14,
+   32.97,
+   40.11,
+   90.05
+  ],
+  "predicted_s": 40,
+  "frac_within_tol": 0.4166666666666667
+ },
+ "acf": {
+  "lag_s": 40,
+  "acf": 0.237
+ },
+ "events": [
+  {
+   "t_s": 137.329,
+   "first_slow_start_s": 137.329,
+   "last_slow_end_s": 137.388,
+   "peak_ms": 58.0,
+   "n_slow_ops": 29,
+   "n_threads_slow": 29,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 177.392,
+   "first_slow_start_s": 177.392,
+   "last_slow_end_s": 177.448,
+   "peak_ms": 53.0,
+   "n_slow_ops": 41,
+   "n_threads_slow": 41,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 317.473,
+   "first_slow_start_s": 317.473,
+   "last_slow_end_s": 317.494,
+   "peak_ms": 21.0,
+   "n_slow_ops": 3,
+   "n_threads_slow": 3,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 344.722,
+   "first_slow_start_s": 343.059,
+   "last_slow_end_s": 344.797,
+   "peak_ms": 74.0,
+   "n_slow_ops": 36,
+   "n_threads_slow": 36,
+   "tag": "other"
+  },
+  {
+   "t_s": 377.497,
+   "first_slow_start_s": 377.497,
+   "last_slow_end_s": 377.62,
+   "peak_ms": 118.0,
+   "n_slow_ops": 99,
+   "n_threads_slow": 99,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 417.615,
+   "first_slow_start_s": 417.615,
+   "last_slow_end_s": 417.688,
+   "peak_ms": 70.0,
+   "n_slow_ops": 49,
+   "n_threads_slow": 49,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 457.689,
+   "first_slow_start_s": 457.689,
+   "last_slow_end_s": 457.719,
+   "peak_ms": 29.0,
+   "n_slow_ops": 11,
+   "n_threads_slow": 11,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 508.66,
+   "first_slow_start_s": 507.145,
+   "last_slow_end_s": 509.404,
+   "peak_ms": 726.0,
+   "n_slow_ops": 186,
+   "n_threads_slow": 97,
+   "tag": "other"
+  },
+  {
+   "t_s": 547.734,
+   "first_slow_start_s": 547.733,
+   "last_slow_end_s": 548.609,
+   "peak_ms": 109.0,
+   "n_slow_ops": 91,
+   "n_threads_slow": 90,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 554.871,
+   "first_slow_start_s": 554.871,
+   "last_slow_end_s": 554.894,
+   "peak_ms": 23.0,
+   "n_slow_ops": 2,
+   "n_threads_slow": 2,
+   "tag": "other"
+  },
+  {
+   "t_s": 587.844,
+   "first_slow_start_s": 587.844,
+   "last_slow_end_s": 587.956,
+   "peak_ms": 106.0,
+   "n_slow_ops": 91,
+   "n_threads_slow": 91,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 627.95,
+   "first_slow_start_s": 627.95,
+   "last_slow_end_s": 627.984,
+   "peak_ms": 33.0,
+   "n_slow_ops": 16,
+   "n_threads_slow": 16,
+   "tag": "sweep"
+  },
+  {
+   "t_s": 718.001,
+   "first_slow_start_s": 718.001,
+   "last_slow_end_s": 718.024,
+   "peak_ms": 23.0,
+   "n_slow_ops": 6,
+   "n_threads_slow": 6,
+   "tag": "sweep"
+  }
+ ],
+ "server": {
+  "samples": 752,
+  "srv_mean_ms_median": 0.1918848167539267,
+  "srv_mean_ms_max": 78.38264141414142,
+  "srv_max_le_ms_median": 2.048,
+  "srv_max_le_ms_max": 786.432,
+  "open_sessions": [
+   19,
+   22.0,
+   75
+  ],
+  "cached_cursors": [
+   75966,
+   106011.0,
+   180959
+  ],
+  "files_open_max": 12014,
+  "dhandles_max": 24021,
+  "checkpoints": 0,
+  "sweep_close_events": 14,
+  "sweep_close_drop_median": 28830.0,
+  "spikes_with_sweep_close": 10,
+  "sweep_closes_with_spike": 10,
+  "sample_gap_max_s": 1.017
+ },
+ "exploratory_sweep_locked": {
+  "sweeps": 14,
+  "other_intervals": 584,
+  "sweep_max_ms_median": 31.0,
+  "other_max_ms_median": 2.0,
+  "sweep_max_ms_list": [
+   58.0,
+   53.0,
+   11.0,
+   10.0,
+   21.0,
+   118.0,
+   70.0,
+   29.0,
+   10.0,
+   109.0,
+   106.0,
+   33.0,
+   13.0,
+   23.0
+  ],
+  "sweep_cursors_closed_median": 28830.0,
+  "sweep_frac_max_ge_10ms": 1.0,
+  "other_frac_max_ge_10ms": 0.02054794520547945,
+  "sweep_frac_max_ge_thr": 0.7142857142857143,
+  "sweep_times_s": [
+   137.4,
+   177.4,
+   208.4,
+   218.4,
+   318.4,
+   378.4,
+   418.4,
+   458.4,
+   498.4,
+   548.4,
+   588.4,
+   628.4,
+   688.4,
+   718.4
+  ],
+  "sweep_interval_median_s": 40.0,
+  "other_frac_max_ge_thr": 0.010273972602739725
+ },
+ "checkpoint_starts_s": [],
+ "spike_tags": {
+  "sweep": 10,
+  "other": 3
+ },
+ "server_detector_D2": {
+  "baseline_mean_ms": 0.1918848167539267,
+  "threshold_ms": 1.918848167539267,
+  "events": [
+   {
+    "t_s": 378.428,
+    "peak_mean_ms": 8.084466666666666,
+    "max_le_ms": 131.072
+   },
+   {
+    "t_s": 418.426,
+    "peak_mean_ms": 2.804412595005429,
+    "max_le_ms": 98.304
+   },
+   {
+    "t_s": 509.426,
+    "peak_mean_ms": 78.38264141414142,
+    "max_le_ms": 786.432
+   },
+   {
+    "t_s": 548.428,
+    "peak_mean_ms": 6.722338945005612,
+    "max_le_ms": 131.072
+   },
+   {
+    "t_s": 588.426,
+    "peak_mean_ms": 6.946480984340044,
+    "max_le_ms": 131.072
+   }
+  ],
+  "n_events": 5,
+  "intervals": {
+   "n_intervals": 4,
+   "median_s": 39.99800000000002,
+   "iqr_s": [
+    39.748999999999995,
+    52.748500000000035
+   ],
+   "min_s": 39.00200000000001,
+   "max_s": 91.0,
+   "intervals_s": [
+    40.0,
+    91.0,
+    39.0,
+    40.0
+   ],
+   "predicted_s": 40,
+   "frac_within_tol": 0.75
+  },
+  "peak_mean_ms_median": 6.946480984340044,
+  "coincide_with_D1": 5
+ },
+ "docker_stats": {
+  "s52879-sampler": {
+   "mem_max_mib": 21.94,
+   "cpu_max_pct": 0.93
+  },
+  "s52879-mongod": {
+   "mem_max_mib": 1319.936,
+   "cpu_max_pct": 118.02
+  },
+  "s52879-client": {
+   "mem_max_mib": 1374.208,
+   "cpu_max_pct": 88.4
+  },
+  "(other containers, summed)": {
+   "mem_max_mib": NaN,
+   "cpu_max_pct": 300.98,
+   "cpu_median_pct": 4.79
+  }
+ },
+ "slow_query_log": {
+  "slow_inserts_over_100ms": 70,
+  "slowest_ms": 643
+ },
+ "criteria": {
+  "S1_ge8_spike_events": true,
+  "S2_period": false
+ }
+}

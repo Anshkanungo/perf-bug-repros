@@ -1,0 +1,20 @@
+{
+ "how": "reconstructed from `pmset -g log` power tags (last tag at or before the time)",
+ "insert_phase_utc": [
+  "2026-10-28T03:28:07Z",
+  "2026-10-28T03:28:12Z"
+ ],
+ "power_start": {
+  "source": "AC Power",
+  "charge_pct": 13,
+  "tag_time": "2026-10-27 22:59:03 -0400"
+ },
+ "power_end": {
+  "source": "AC Power",
+  "charge_pct": 13,
+  "tag_time": "2026-10-27 22:59:03 -0400"
+ },
+ "battery_tag_inside_run": false,
+ "whole_run_on_ac": true,
+ "low_power_mode_on_battery": "assumed 1 (pmset -g custom on 2026-10-28: Battery Power lowpowermode 1)"
+}

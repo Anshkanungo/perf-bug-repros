@@ -1,0 +1,2702 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1600" height="1286" onload="init(evt)" viewBox="0 0 1600 1286" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+		if (currentSearchTerm === null) return;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1600.0" height="1286.0" fill="url(#background)"  />
+<text id="title" x="800.00" y="24" >stuck connection thread(s) on-CPU (cpu-clock)</text>
+<text id="details" x="10.00" y="1269" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1490.00" y="24" >Search</text>
+<text id="ignorecase" x="1574.00" y="24" >ic</text>
+<text id="matched" x="1490.00" y="1269" > </text>
+<g id="frames">
+<g >
+<title>__wt_value_return_buf (852 samples, 1.42%)</title><rect x="1558.3" y="437" width="22.5" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1561.31" y="447.5" >_..</text>
+</g>
+<g >
+<title>__tree_walk_internal (97 samples, 0.16%)</title><rect x="600.5" y="437" width="2.6" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="603.53" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (594 samples, 0.99%)</title><rect x="217.3" y="309" width="15.6" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="220.27" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_row_modify (14 samples, 0.02%)</title><rect x="1589.4" y="373" width="0.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1592.37" y="383.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (322 samples, 0.54%)</title><rect x="367.5" y="341" width="8.5" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="370.50" y="351.5" ></text>
+</g>
+<g >
+<title>__arch_copy_to_user (8 samples, 0.01%)</title><rect x="601.3" y="133" width="0.2" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="604.32" y="143.5" ></text>
+</g>
+<g >
+<title>el0t_64_irq_handler (5 samples, 0.01%)</title><rect x="548.5" y="389" width="0.1" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="551.45" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_next_prefix (512 samples, 0.85%)</title><rect x="170.5" y="341" width="13.5" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="173.53" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void (mongo::Status)&gt;::makeImpl&lt;mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr&lt;mongo::transport::Session&gt; const&amp;, mongo::unique_function&lt;void (mongo::Status)&gt;)::{lambda(mongo::Status)#1}&gt;(mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr&lt;mongo::transport::Session&gt; const&amp;, mongo::unique_function&lt;void (mongo::Status)&gt;)::{lambda(mongo::Status)#1}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="1125" width="1580.0" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="13.00" y="1135.5" >mongo::unique_function&lt;void (mongo::Status)&gt;::makeImpl&lt;mongo::transport::ServiceExecutorSynchronous::runOnDataAvailable(std::shared_ptr&lt;mongo::transport::Session&gt; const&amp;, mongo::unique_function&lt;void (mongo::Status)&gt;)::{la..</text>
+</g>
+<g >
+<title>__arm64_sys_pread64 (6 samples, 0.01%)</title><rect x="1113.0" y="245" width="0.2" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="1116.01" y="255.5" ></text>
+</g>
+<g >
+<title>__tree_walk_internal (1,362 samples, 2.27%)</title><rect x="744.4" y="325" width="35.9" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="747.42" y="335.5" >__t..</text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (49 samples, 0.08%)</title><rect x="118.6" y="325" width="1.3" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="121.59" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_skip_page (14 samples, 0.02%)</title><rect x="1112.6" y="437" width="0.4" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="1115.59" y="447.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (323 samples, 0.54%)</title><rect x="1409.3" y="357" width="8.5" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1412.34" y="367.5" ></text>
+</g>
+<g >
+<title>__curhs_set_key (2,946 samples, 4.91%)</title><rect x="839.0" y="405" width="77.6" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="841.99" y="415.5" >__curhs_..</text>
+</g>
+<g >
+<title>strlen (5 samples, 0.01%)</title><rect x="1489.8" y="357" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1492.84" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_free_int (21 samples, 0.04%)</title><rect x="118.0" y="325" width="0.5" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="120.95" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (105 samples, 0.18%)</title><rect x="54.1" y="421" width="2.8" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="57.10" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_valid (28 samples, 0.05%)</title><rect x="780.6" y="341" width="0.7" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="783.59" y="351.5" ></text>
+</g>
+<g >
+<title>clock_gettime (18 samples, 0.03%)</title><rect x="1178.6" y="341" width="0.5" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1181.60" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_set_func (533 samples, 0.89%)</title><rect x="1289.0" y="325" width="14.0" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1291.98" y="335.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::runFunc (59,978 samples, 100.00%)</title><rect x="10.0" y="1189" width="1580.0" height="15.0" fill="rgb(214,44,10)" rx="2" ry="2" />
+<text  x="13.00" y="1199.5" >mongo::(anonymous namespace)::runFunc</text>
+</g>
+<g >
+<title>__curfile_reopen (1,832 samples, 3.05%)</title><rect x="926.6" y="341" width="48.2" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="929.58" y="351.5" >__cu..</text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::indexRecords (59,977 samples, 100.00%)</title><rect x="10.0" y="645" width="1580.0" height="15.0" fill="rgb(206,4,1)" rx="2" ry="2" />
+<text  x="13.00" y="655.5" >mongo::IndexCatalogImpl::indexRecords</text>
+</g>
+<g >
+<title>__posix_file_read (8 samples, 0.01%)</title><rect x="1113.0" y="357" width="0.2" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="1115.95" y="367.5" ></text>
+</g>
+<g >
+<title>filemap_read (15 samples, 0.03%)</title><rect x="47.8" y="165" width="0.4" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="50.80" y="175.5" ></text>
+</g>
+<g >
+<title>__wt_session_lock_dhandle (1,183 samples, 1.97%)</title><rect x="405.0" y="325" width="31.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="407.99" y="335.5" >__..</text>
+</g>
+<g >
+<title>__wt_epoch_raw (22 samples, 0.04%)</title><rect x="120.0" y="341" width="0.5" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="122.96" y="351.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (337 samples, 0.56%)</title><rect x="881.8" y="341" width="8.9" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="884.85" y="351.5" ></text>
+</g>
+<g >
+<title>strlen (7 samples, 0.01%)</title><rect x="451.5" y="341" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="454.48" y="351.5" ></text>
+</g>
+<g >
+<title>do_el0_svc (8 samples, 0.01%)</title><rect x="601.1" y="325" width="0.2" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="604.06" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_malloc (66 samples, 0.11%)</title><rect x="1541.9" y="373" width="1.7" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1544.90" y="383.5" ></text>
+</g>
+<g >
+<title>__cursor_skip_prev (309 samples, 0.52%)</title><rect x="592.4" y="437" width="8.1" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="595.39" y="447.5" ></text>
+</g>
+<g >
+<title>__curhs_file_cursor_open (2,472 samples, 4.12%)</title><rect x="1424.9" y="405" width="65.1" height="15.0" fill="rgb(229,113,27)" rx="2" ry="2" />
+<text  x="1427.86" y="415.5" >__curhs..</text>
+</g>
+<g >
+<title>__wt_split_multi (26 samples, 0.04%)</title><rect x="50.1" y="357" width="0.7" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="53.12" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_cache (41 samples, 0.07%)</title><rect x="1175.1" y="341" width="1.1" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="1178.10" y="351.5" ></text>
+</g>
+<g >
+<title>strlen (10 samples, 0.02%)</title><rect x="1543.7" y="389" width="0.3" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1546.69" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_open_cursor (2,428 samples, 4.05%)</title><rect x="1426.0" y="389" width="64.0" height="15.0" fill="rgb(208,18,4)" rx="2" ry="2" />
+<text  x="1429.01" y="399.5" >__wt_op..</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::RunCommandImpl::run (59,978 samples, 100.00%)</title><rect x="10.0" y="853" width="1580.0" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="13.00" y="863.5" >mongo::(anonymous namespace)::RunCommandImpl::run</text>
+</g>
+<g >
+<title>__curhs_reset (120 samples, 0.20%)</title><rect x="1312.9" y="389" width="3.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="1315.90" y="399.5" ></text>
+</g>
+<g >
+<title>__cursor_config_debug.isra.9 (46 samples, 0.08%)</title><rect x="1510.0" y="389" width="1.2" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1513.00" y="399.5" ></text>
+</g>
+<g >
+<title>strlen (11 samples, 0.02%)</title><rect x="509.2" y="373" width="0.3" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="512.23" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runCommandWithFailPoint (59,978 samples, 100.00%)</title><rect x="10.0" y="821" width="1580.0" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="13.00" y="831.5" >mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runCommandWithFailPoint</text>
+</g>
+<g >
+<title>__wt_session_gen_leave (584 samples, 0.97%)</title><rect x="1265.9" y="325" width="15.4" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1268.90" y="335.5" ></text>
+</g>
+<g >
+<title>copy_page_to_iter (9 samples, 0.02%)</title><rect x="601.3" y="149" width="0.3" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="604.32" y="159.5" ></text>
+</g>
+<g >
+<title>__wt_cache_eviction_worker (19 samples, 0.03%)</title><rect x="1589.3" y="469" width="0.5" height="15.0" fill="rgb(206,9,2)" rx="2" ry="2" />
+<text  x="1592.32" y="479.5" ></text>
+</g>
+<g >
+<title>__sched_yield (13 samples, 0.02%)</title><rect x="600.9" y="389" width="0.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="603.93" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_key (2,814 samples, 4.69%)</title><rect x="302.2" y="389" width="74.1" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="305.17" y="399.5" >__wt_cur..</text>
+</g>
+<g >
+<title>invoke_syscall.constprop.0 (9 samples, 0.02%)</title><rect x="601.3" y="245" width="0.3" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="604.32" y="255.5" ></text>
+</g>
+<g >
+<title>do_mem_abort (4 samples, 0.01%)</title><rect x="49.5" y="277" width="0.1" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="52.49" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_open_cursor (2,592 samples, 4.32%)</title><rect x="383.4" y="373" width="68.3" height="15.0" fill="rgb(208,18,4)" rx="2" ry="2" />
+<text  x="386.39" y="383.5" >__wt_op..</text>
+</g>
+<g >
+<title>strcmp (142 samples, 0.24%)</title><rect x="974.8" y="341" width="3.8" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="977.84" y="351.5" ></text>
+</g>
+<g >
+<title>__el0_irq_handler_common (7 samples, 0.01%)</title><rect x="557.0" y="405" width="0.2" height="15.0" fill="rgb(206,5,1)" rx="2" ry="2" />
+<text  x="560.04" y="415.5" ></text>
+</g>
+<g >
+<title>all (59,978 samples, 100%)</title><rect x="10.0" y="1237" width="1580.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="1247.5" ></text>
+</g>
+<g >
+<title>clock_gettime (23 samples, 0.04%)</title><rect x="671.9" y="325" width="0.7" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="674.95" y="335.5" ></text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function&lt;void ()&gt;, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&gt;(mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function&lt;void ()&gt;, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="1157" width="1580.0" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="13.00" y="1167.5" >mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::transport::ServiceExecutorSynchronous::scheduleTask(mongo::unique_function&lt;void ()&gt;, mongo::transport::ServiceExecutor::ScheduleFlags)::{lambda()#2}&gt;(mongo::transport::Serv..</text>
+</g>
+<g >
+<title>__wt_bt_read (23 samples, 0.04%)</title><rect x="47.7" y="389" width="0.7" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="50.75" y="399.5" ></text>
+</g>
+<g >
+<title>strncmp (135 samples, 0.23%)</title><rect x="441.2" y="341" width="3.6" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="444.23" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets_def (20 samples, 0.03%)</title><rect x="1510.7" y="373" width="0.5" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1513.68" y="383.5" ></text>
+</g>
+<g >
+<title>__kernel_clock_gettime (17 samples, 0.03%)</title><rect x="672.1" y="309" width="0.5" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="675.10" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (260 samples, 0.43%)</title><rect x="509.5" y="389" width="6.9" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="512.52" y="399.5" ></text>
+</g>
+<g >
+<title>__curhs_search_near_helper (5,425 samples, 9.04%)</title><rect x="150.5" y="405" width="142.9" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="153.49" y="415.5" >__curhs_search_nea..</text>
+</g>
+<g >
+<title>__wt_cursor_valid (44 samples, 0.07%)</title><rect x="233.2" y="341" width="1.1" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="236.18" y="351.5" ></text>
+</g>
+<g >
+<title>__page_read (34 samples, 0.06%)</title><rect x="1113.0" y="421" width="0.9" height="15.0" fill="rgb(243,175,41)" rx="2" ry="2" />
+<text  x="1115.95" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_init (1,848 samples, 3.08%)</title><rect x="460.8" y="389" width="48.7" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="463.83" y="399.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_config_gets_def (871 samples, 1.45%)</title><rect x="1009.5" y="373" width="22.9" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1012.48" y="383.5" >_..</text>
+</g>
+<g >
+<title>__wt_page_in_func (591 samples, 0.99%)</title><rect x="1249.7" y="325" width="15.6" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="1252.70" y="335.5" ></text>
+</g>
+<g >
+<title>do_sched_yield (27 samples, 0.05%)</title><rect x="46.8" y="277" width="0.7" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="49.77" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (379 samples, 0.63%)</title><rect x="258.7" y="341" width="10.0" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="261.68" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_session_cursor_cache_sweep.part.11 (24 samples, 0.04%)</title><rect x="119.9" y="357" width="0.7" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="122.93" y="367.5" ></text>
+</g>
+<g >
+<title>memcpy (19 samples, 0.03%)</title><rect x="1318.4" y="373" width="0.5" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1321.38" y="383.5" ></text>
+</g>
+<g >
+<title>invoke_syscall.constprop.0 (7 samples, 0.01%)</title><rect x="601.1" y="309" width="0.1" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="604.06" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_epoch_raw (7 samples, 0.01%)</title><rect x="1179.2" y="357" width="0.1" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="1182.15" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_cache_get (2,141 samples, 3.57%)</title><rect x="1426.8" y="373" width="56.4" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1429.81" y="383.5" >__wt_..</text>
+</g>
+<g >
+<title>memset (9 samples, 0.02%)</title><rect x="1055.9" y="389" width="0.3" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1058.92" y="399.5" ></text>
+</g>
+<g >
+<title>memset (10 samples, 0.02%)</title><rect x="522.8" y="389" width="0.3" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="525.85" y="399.5" ></text>
+</g>
+<g >
+<title>memcpy (10 samples, 0.02%)</title><rect x="1346.8" y="389" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1349.78" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (117 samples, 0.20%)</title><rect x="299.1" y="389" width="3.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="302.09" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_next_prefix (562 samples, 0.94%)</title><rect x="719.3" y="341" width="14.8" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="722.26" y="351.5" ></text>
+</g>
+<g >
+<title>memcpy (8 samples, 0.01%)</title><rect x="1392.9" y="357" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1395.88" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_reset (32 samples, 0.05%)</title><rect x="271.3" y="341" width="0.8" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="274.27" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_cache_release (1,640 samples, 2.73%)</title><rect x="642.0" y="373" width="43.2" height="15.0" fill="rgb(208,13,3)" rx="2" ry="2" />
+<text  x="644.97" y="383.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_cursor_get_hash (216 samples, 0.36%)</title><rect x="982.1" y="357" width="5.7" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="985.11" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexKeys (59,974 samples, 99.99%)</title><rect x="10.1" y="597" width="1579.9" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="13.08" y="607.5" >mongo::IndexCatalogImpl::_indexKeys</text>
+</g>
+<g >
+<title>__wt_btcur_iterate_setup (7 samples, 0.01%)</title><rect x="780.3" y="325" width="0.2" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="783.30" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_readunlock (338 samples, 0.56%)</title><rect x="676.3" y="341" width="8.9" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="679.27" y="351.5" ></text>
+</g>
+<g >
+<title>do_sched_yield (7 samples, 0.01%)</title><rect x="601.1" y="277" width="0.1" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="604.06" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_multi_to_ref (12 samples, 0.02%)</title><rect x="1113.9" y="357" width="0.3" height="15.0" fill="rgb(227,104,24)" rx="2" ry="2" />
+<text  x="1116.90" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (433 samples, 0.72%)</title><rect x="1318.9" y="389" width="11.4" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1321.88" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_reset (31 samples, 0.05%)</title><rect x="1315.2" y="357" width="0.9" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="1318.24" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_vunpack_uint (7 samples, 0.01%)</title><rect x="49.7" y="373" width="0.2" height="15.0" fill="rgb(237,147,35)" rx="2" ry="2" />
+<text  x="52.67" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_row_leaf_key_work (227 samples, 0.38%)</title><rect x="1114.3" y="453" width="6.0" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="1117.30" y="463.5" ></text>
+</g>
+<g >
+<title>__libc_pread64 (8 samples, 0.01%)</title><rect x="1113.0" y="341" width="0.2" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="1115.95" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_bm_read (22 samples, 0.04%)</title><rect x="47.8" y="373" width="0.6" height="15.0" fill="rgb(242,170,40)" rx="2" ry="2" />
+<text  x="50.78" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_free_int (10 samples, 0.02%)</title><rect x="669.8" y="325" width="0.3" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="672.84" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_iterate_setup (17 samples, 0.03%)</title><rect x="733.6" y="325" width="0.4" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="736.59" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_row_search (884 samples, 1.47%)</title><rect x="234.3" y="341" width="23.3" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="237.34" y="351.5" >_..</text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (111 samples, 0.19%)</title><rect x="844.9" y="389" width="2.9" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="847.91" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_multi_to_ref (24 samples, 0.04%)</title><rect x="50.1" y="341" width="0.7" height="15.0" fill="rgb(227,104,24)" rx="2" ry="2" />
+<text  x="53.12" y="351.5" ></text>
+</g>
+<g >
+<title>el0_svc (75 samples, 0.13%)</title><rect x="45.7" y="341" width="2.0" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="48.75" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_cache_eviction_worker (17 samples, 0.03%)</title><rect x="1113.9" y="421" width="0.4" height="15.0" fill="rgb(206,9,2)" rx="2" ry="2" />
+<text  x="1116.85" y="431.5" ></text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexRecords (59,977 samples, 100.00%)</title><rect x="10.0" y="629" width="1580.0" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="13.00" y="639.5" >mongo::IndexCatalogImpl::_indexRecords</text>
+</g>
+<g >
+<title>__wt_btcur_search_near (3,844 samples, 6.41%)</title><rect x="711.3" y="357" width="101.3" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="714.33" y="367.5" >__wt_btcur_s..</text>
+</g>
+<g >
+<title>el1h_64_sync (4 samples, 0.01%)</title><rect x="601.4" y="117" width="0.1" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="604.43" y="127.5" ></text>
+</g>
+<g >
+<title>__wt_calloc (294 samples, 0.49%)</title><rect x="1490.0" y="405" width="7.7" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="1492.98" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::runCommandInvocation (59,978 samples, 100.00%)</title><rect x="10.0" y="789" width="1580.0" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="13.00" y="799.5" >mongo::(anonymous namespace)::runCommandInvocation</text>
+</g>
+<g >
+<title>__curfile_cache (1,118 samples, 1.86%)</title><rect x="90.5" y="357" width="29.4" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="93.45" y="367.5" >__..</text>
+</g>
+<g >
+<title>memcpy (28 samples, 0.05%)</title><rect x="348.5" y="341" width="0.7" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="351.48" y="351.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (13 samples, 0.02%)</title><rect x="1314.9" y="357" width="0.3" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="1317.90" y="367.5" ></text>
+</g>
+<g >
+<title>el0_svc (10 samples, 0.02%)</title><rect x="601.3" y="277" width="0.3" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="604.29" y="287.5" ></text>
+</g>
+<g >
+<title>schedule (5 samples, 0.01%)</title><rect x="47.4" y="261" width="0.1" height="15.0" fill="rgb(254,229,54)" rx="2" ry="2" />
+<text  x="50.35" y="271.5" ></text>
+</g>
+<g >
+<title>__tree_walk_internal (1,385 samples, 2.31%)</title><rect x="1244.8" y="341" width="36.5" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1247.83" y="351.5" >__t..</text>
+</g>
+<g >
+<title>__evict_page (39 samples, 0.07%)</title><rect x="49.9" y="389" width="1.0" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="52.86" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (76 samples, 0.13%)</title><rect x="272.1" y="373" width="2.0" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="275.11" y="383.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (359 samples, 0.60%)</title><rect x="339.0" y="341" width="9.5" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="342.00" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_multi_to_ref (4 samples, 0.01%)</title><rect x="603.0" y="341" width="0.1" height="15.0" fill="rgb(227,104,24)" rx="2" ry="2" />
+<text  x="605.95" y="351.5" ></text>
+</g>
+<g >
+<title>memcpy (12 samples, 0.02%)</title><rect x="831.7" y="373" width="0.4" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="834.74" y="383.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync (7 samples, 0.01%)</title><rect x="1113.0" y="325" width="0.2" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="1115.98" y="335.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (234 samples, 0.39%)</title><rect x="662.2" y="325" width="6.2" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="665.20" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_epoch_raw (22 samples, 0.04%)</title><rect x="1178.5" y="357" width="0.6" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="1181.50" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (154 samples, 0.26%)</title><rect x="853.8" y="357" width="4.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="856.82" y="367.5" ></text>
+</g>
+<g >
+<title>__curfile_close (1,750 samples, 2.92%)</title><rect x="639.1" y="389" width="46.1" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="642.07" y="399.5" >__cu..</text>
+</g>
+<g >
+<title>__wt_txn_read_upd_list_internal (195 samples, 0.33%)</title><rect x="1074.3" y="437" width="5.2" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="1077.34" y="447.5" ></text>
+</g>
+<g >
+<title>memcpy (16 samples, 0.03%)</title><rect x="890.8" y="341" width="0.4" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="893.75" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (586 samples, 0.98%)</title><rect x="748.9" y="309" width="15.4" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="751.89" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (3,897 samples, 6.50%)</title><rect x="1210.2" y="389" width="102.7" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="1213.24" y="399.5" >__curfile_se..</text>
+</g>
+<g >
+<title>__wt_calloc (348 samples, 0.58%)</title><rect x="451.7" y="389" width="9.1" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="454.67" y="399.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::_keyExists (59,948 samples, 99.95%)</title><rect x="10.1" y="517" width="1579.2" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="13.11" y="527.5" >mongo::WiredTigerIndexUnique::_keyExists</text>
+</g>
+<g >
+<title>el0_interrupt (5 samples, 0.01%)</title><rect x="548.5" y="357" width="0.1" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="551.45" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void (mongo::future_details::SharedStateBase*)&gt;::makeImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::makeContinuation&lt;void, mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#1}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#1}&amp;&amp;) &amp;&amp;::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*, mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*)#1}&gt;(mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#1}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#1}&amp;&amp;) &amp;&amp;::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*, mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*)#1}&amp;&amp;)::{lambda(mongo::future_details::SharedStateBase*)#1}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#1}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="949" width="1580.0" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="13.00" y="959.5" >mongo::unique_function&lt;void (mongo::future_details::SharedStateBase*)&gt;::makeImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::makeContinuation&lt;void, mongo::future_details::FutureImpl&lt;mongo::future_d..</text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (107 samples, 0.18%)</title><rect x="1316.1" y="389" width="2.8" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="1319.06" y="399.5" ></text>
+</g>
+<g >
+<title>syscall_trace_enter (8 samples, 0.01%)</title><rect x="47.5" y="309" width="0.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="50.51" y="319.5" ></text>
+</g>
+<g >
+<title>el1h_64_sync_handler (4 samples, 0.01%)</title><rect x="48.0" y="101" width="0.1" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="51.04" y="111.5" ></text>
+</g>
+<g >
+<title>__tree_walk_internal (65 samples, 0.11%)</title><rect x="1112.6" y="453" width="1.7" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1115.59" y="463.5" ></text>
+</g>
+<g >
+<title>__wt_txn_read (18,665 samples, 31.12%)</title><rect x="57.0" y="437" width="491.7" height="15.0" fill="rgb(244,179,43)" rx="2" ry="2" />
+<text  x="59.97" y="447.5" >__wt_txn_read</text>
+</g>
+<g >
+<title>__wt_struct_packv (1,384 samples, 2.31%)</title><rect x="313.0" y="357" width="36.4" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="315.97" y="367.5" >__w..</text>
+</g>
+<g >
+<title>__wt_txn_read (17,481 samples, 29.15%)</title><rect x="1120.3" y="453" width="460.5" height="15.0" fill="rgb(244,179,43)" rx="2" ry="2" />
+<text  x="1123.28" y="463.5" >__wt_txn_read</text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::ExecCommandDatabase::_commandExec (59,978 samples, 100.00%)</title><rect x="10.0" y="869" width="1580.0" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="13.00" y="879.5" >mongo::(anonymous namespace)::ExecCommandDatabase::_commandExec</text>
+</g>
+<g >
+<title>__wt_btcur_next_prefix (20,769 samples, 34.63%)</title><rect x="10.1" y="453" width="547.1" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="13.11" y="463.5" >__wt_btcur_next_prefix</text>
+</g>
+<g >
+<title>el1_abort (4 samples, 0.01%)</title><rect x="601.4" y="85" width="0.1" height="15.0" fill="rgb(220,72,17)" rx="2" ry="2" />
+<text  x="604.43" y="95.5" ></text>
+</g>
+<g >
+<title>__wt_curhs_open (5,572 samples, 9.29%)</title><rect x="376.3" y="405" width="146.8" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="379.33" y="415.5" >__wt_curhs_open</text>
+</g>
+<g >
+<title>__tree_walk_internal (1,447 samples, 2.41%)</title><rect x="194.8" y="325" width="38.1" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="197.82" y="335.5" >__t..</text>
+</g>
+<g >
+<title>mongo::future_details::SharedStateBase::transitionToFinished (59,978 samples, 100.00%)</title><rect x="10.0" y="917" width="1580.0" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="13.00" y="927.5" >mongo::future_details::SharedStateBase::transitionToFinished</text>
+</g>
+<g >
+<title>__wt_malloc (88 samples, 0.15%)</title><rect x="1040.2" y="357" width="2.3" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1043.20" y="367.5" ></text>
+</g>
+<g >
+<title>strlen (9 samples, 0.02%)</title><rect x="376.1" y="341" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="379.06" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_epoch_raw (13 samples, 0.02%)</title><rect x="120.6" y="341" width="0.4" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="123.61" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_bm_read (16 samples, 0.03%)</title><rect x="601.3" y="373" width="0.4" height="15.0" fill="rgb(242,170,40)" rx="2" ry="2" />
+<text  x="604.27" y="383.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (240 samples, 0.40%)</title><rect x="109.9" y="325" width="6.4" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="112.95" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_update_vector_free (23 samples, 0.04%)</title><rect x="1056.9" y="405" width="0.6" height="15.0" fill="rgb(216,50,12)" rx="2" ry="2" />
+<text  x="1059.92" y="415.5" ></text>
+</g>
+<g >
+<title>__curfile_reopen (1,734 samples, 2.89%)</title><rect x="1429.1" y="357" width="45.7" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="1432.10" y="367.5" >__cu..</text>
+</g>
+<g >
+<title>__wt_struct_sizev (959 samples, 1.60%)</title><rect x="891.3" y="357" width="25.3" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="894.30" y="367.5" >_..</text>
+</g>
+<g >
+<title>__libc_pread64 (11 samples, 0.02%)</title><rect x="601.3" y="325" width="0.3" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="604.27" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_block_read_off (22 samples, 0.04%)</title><rect x="47.8" y="357" width="0.6" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="50.78" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (98 samples, 0.16%)</title><rect x="1330.3" y="405" width="2.6" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="1333.28" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_page_alloc (4 samples, 0.01%)</title><rect x="1113.7" y="389" width="0.1" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="1116.72" y="399.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::executeCommand (59,978 samples, 100.00%)</title><rect x="10.0" y="981" width="1580.0" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="13.00" y="991.5" >mongo::(anonymous namespace)::executeCommand</text>
+</g>
+<g >
+<title>mongo::transport::ServiceStateMachine::Impl::startNewLoop (59,978 samples, 100.00%)</title><rect x="10.0" y="1093" width="1580.0" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="13.00" y="1103.5" >mongo::transport::ServiceStateMachine::Impl::startNewLoop</text>
+</g>
+<g >
+<title>tc_malloc (73 samples, 0.12%)</title><rect x="1040.6" y="341" width="1.9" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="1043.59" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hs_find_upd (16,206 samples, 27.02%)</title><rect x="631.1" y="421" width="426.9" height="15.0" fill="rgb(243,175,42)" rx="2" ry="2" />
+<text  x="634.12" y="431.5" >__wt_hs_find_upd</text>
+</g>
+<g >
+<title>el0t_64_sync (4 samples, 0.01%)</title><rect x="49.5" y="325" width="0.1" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="52.49" y="335.5" ></text>
+</g>
+<g >
+<title>el0_svc (16 samples, 0.03%)</title><rect x="47.8" y="277" width="0.4" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="50.78" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_malloc (72 samples, 0.12%)</title><rect x="520.9" y="373" width="1.9" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="523.92" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_close (598 samples, 1.00%)</title><rect x="685.2" y="389" width="15.7" height="15.0" fill="rgb(213,36,8)" rx="2" ry="2" />
+<text  x="688.17" y="399.5" ></text>
+</g>
+<g >
+<title>start_thread (59,978 samples, 100.00%)</title><rect x="10.0" y="1205" width="1580.0" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="13.00" y="1215.5" >start_thread</text>
+</g>
+<g >
+<title>__arm64_sys_pread64 (9 samples, 0.02%)</title><rect x="601.3" y="229" width="0.3" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="604.32" y="239.5" ></text>
+</g>
+<g >
+<title>filemap_read (6 samples, 0.01%)</title><rect x="1113.0" y="181" width="0.2" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="1116.01" y="191.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_iterate_setup (9 samples, 0.02%)</title><rect x="232.9" y="325" width="0.3" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="235.94" y="335.5" ></text>
+</g>
+<g >
+<title>memcpy (4 samples, 0.01%)</title><rect x="56.8" y="405" width="0.1" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="59.76" y="415.5" ></text>
+</g>
+<g >
+<title>__curhs_reset (130 samples, 0.22%)</title><rect x="268.7" y="373" width="3.4" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="271.69" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::CommandHelpers::runCommandInvocation (59,978 samples, 100.00%)</title><rect x="10.0" y="773" width="1580.0" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="13.00" y="783.5" >mongo::CommandHelpers::runCommandInvocation</text>
+</g>
+<g >
+<title>do_page_fault (4 samples, 0.01%)</title><rect x="48.0" y="37" width="0.1" height="15.0" fill="rgb(216,54,13)" rx="2" ry="2" />
+<text  x="51.04" y="47.5" ></text>
+</g>
+<g >
+<title>__wt_free_update_list (27 samples, 0.05%)</title><rect x="1556.4" y="421" width="0.7" height="15.0" fill="rgb(254,229,54)" rx="2" ry="2" />
+<text  x="1559.41" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_txn_read_upd_list_internal (322 samples, 0.54%)</title><rect x="1580.8" y="453" width="8.5" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="1583.78" y="463.5" ></text>
+</g>
+<g >
+<title>__rec_row_leaf_insert (9 samples, 0.02%)</title><rect x="49.9" y="325" width="0.2" height="15.0" fill="rgb(238,155,37)" rx="2" ry="2" />
+<text  x="52.88" y="335.5" ></text>
+</g>
+<g >
+<title>__pi_clear_page (4 samples, 0.01%)</title><rect x="49.5" y="149" width="0.1" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="52.49" y="159.5" ></text>
+</g>
+<g >
+<title>__wt_session_dhandle_sweep (15 samples, 0.03%)</title><rect x="120.6" y="357" width="0.4" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="123.56" y="367.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (79 samples, 0.13%)</title><rect x="1314.0" y="373" width="2.1" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="1316.98" y="383.5" ></text>
+</g>
+<g >
+<title>__arm64_sys_pread64 (15 samples, 0.03%)</title><rect x="47.8" y="229" width="0.4" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="50.80" y="239.5" ></text>
+</g>
+<g >
+<title>tc_calloc (257 samples, 0.43%)</title><rect x="1491.0" y="389" width="6.7" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="1493.95" y="399.5" ></text>
+</g>
+<g >
+<title>mongo::CollectionImpl::insertDocuments (59,978 samples, 100.00%)</title><rect x="10.0" y="677" width="1580.0" height="15.0" fill="rgb(230,116,27)" rx="2" ry="2" />
+<text  x="13.00" y="687.5" >mongo::CollectionImpl::insertDocuments</text>
+</g>
+<g >
+<title>__wt_config_gets_def (20 samples, 0.03%)</title><rect x="475.5" y="357" width="0.5" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="478.48" y="367.5" ></text>
+</g>
+<g >
+<title>__curfile_close (1,818 samples, 3.03%)</title><rect x="85.4" y="389" width="47.9" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="88.37" y="399.5" >__cu..</text>
+</g>
+<g >
+<title>__wt_cursor_cache_get (2,187 samples, 3.65%)</title><rect x="924.5" y="357" width="57.6" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="927.50" y="367.5" >__wt_c..</text>
+</g>
+<g >
+<title>mongo::write_ops_exec::performInserts (59,978 samples, 100.00%)</title><rect x="10.0" y="709" width="1580.0" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="13.00" y="719.5" >mongo::write_ops_exec::performInserts</text>
+</g>
+<g >
+<title>__wt_txn_read (17,502 samples, 29.18%)</title><rect x="613.3" y="437" width="461.0" height="15.0" fill="rgb(244,179,43)" rx="2" ry="2" />
+<text  x="616.28" y="447.5" >__wt_txn_read</text>
+</g>
+<g >
+<title>__tree_walk_internal (446 samples, 0.74%)</title><rect x="721.8" y="325" width="11.8" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="724.84" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_page_inmem (57 samples, 0.10%)</title><rect x="48.4" y="389" width="1.5" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="51.36" y="399.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (4,179 samples, 6.97%)</title><rect x="158.6" y="373" width="110.1" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="161.60" y="383.5" >__curfile_sea..</text>
+</g>
+<g >
+<title>__wt_hash_city64 (39 samples, 0.07%)</title><rect x="986.6" y="341" width="1.0" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="989.61" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_reopen (516 samples, 0.86%)</title><rect x="391.4" y="325" width="13.6" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="394.39" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_cache (1,101 samples, 1.84%)</title><rect x="90.9" y="341" width="29.0" height="15.0" fill="rgb(232,127,30)" rx="2" ry="2" />
+<text  x="93.90" y="351.5" >__..</text>
+</g>
+<g >
+<title>__curhs_set_key (3,148 samples, 5.25%)</title><rect x="293.4" y="405" width="82.9" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="296.40" y="415.5" >__curhs_s..</text>
+</g>
+<g >
+<title>__wt_rec_row_leaf (10 samples, 0.02%)</title><rect x="49.9" y="341" width="0.2" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="52.86" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_struct_sizev (1,020 samples, 1.70%)</title><rect x="349.4" y="357" width="26.9" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="352.43" y="367.5" >_..</text>
+</g>
+<g >
+<title>__wt_epoch_raw (12 samples, 0.02%)</title><rect x="672.6" y="341" width="0.3" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="675.58" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (25 samples, 0.04%)</title><rect x="258.0" y="341" width="0.7" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="261.02" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (583 samples, 0.97%)</title><rect x="764.9" y="309" width="15.4" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="767.91" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_cache (1,070 samples, 1.78%)</title><rect x="643.7" y="357" width="28.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="646.68" y="367.5" >_..</text>
+</g>
+<g >
+<title>__wt_value_return_buf (893 samples, 1.49%)</title><rect x="525.1" y="421" width="23.5" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="528.06" y="431.5" >_..</text>
+</g>
+<g >
+<title>el0t_64_sync_handler (10 samples, 0.02%)</title><rect x="601.3" y="293" width="0.3" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="604.29" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_set_func (597 samples, 1.00%)</title><rect x="241.9" y="309" width="15.7" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="244.90" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (79 samples, 0.13%)</title><rect x="813.8" y="357" width="2.1" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="816.83" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (245 samples, 0.41%)</title><rect x="516.4" y="389" width="6.4" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="519.37" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (421 samples, 0.70%)</title><rect x="818.6" y="373" width="11.1" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="821.57" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (680 samples, 1.13%)</title><rect x="784.7" y="325" width="18.0" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="787.75" y="335.5" ></text>
+</g>
+<g >
+<title>el0_svc (12 samples, 0.02%)</title><rect x="601.0" y="341" width="0.3" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="603.95" y="351.5" ></text>
+</g>
+<g >
+<title>strlen (9 samples, 0.02%)</title><rect x="1042.5" y="373" width="0.3" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1045.54" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_split_multi (5 samples, 0.01%)</title><rect x="602.9" y="357" width="0.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="605.93" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (6 samples, 0.01%)</title><rect x="174.9" y="309" width="0.1" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="177.88" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_clear (9 samples, 0.02%)</title><rect x="723.4" y="309" width="0.3" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="726.45" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_set_func (523 samples, 0.87%)</title><rect x="202.7" y="293" width="13.8" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="205.73" y="303.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runImpl (59,978 samples, 100.00%)</title><rect x="10.0" y="837" width="1580.0" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="13.00" y="847.5" >mongo::(anonymous namespace)::RunCommandAndWaitForWriteConcern::_runImpl</text>
+</g>
+<g >
+<title>__libc_pread64 (16 samples, 0.03%)</title><rect x="47.8" y="325" width="0.4" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="50.78" y="335.5" ></text>
+</g>
+<g >
+<title>__realloc_func (106 samples, 0.18%)</title><rect x="855.0" y="341" width="2.8" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="858.00" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (350 samples, 0.58%)</title><rect x="1534.4" y="389" width="9.3" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1537.44" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_session_dhandle_sweep (13 samples, 0.02%)</title><rect x="672.6" y="357" width="0.3" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="675.55" y="367.5" ></text>
+</g>
+<g >
+<title>strncmp (147 samples, 0.25%)</title><rect x="1479.3" y="357" width="3.9" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="1482.33" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen (4 samples, 0.01%)</title><rect x="174.8" y="309" width="0.1" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="177.78" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets_def (15 samples, 0.03%)</title><rect x="1009.1" y="357" width="0.4" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1012.08" y="367.5" ></text>
+</g>
+<g >
+<title>do_el0_svc (9 samples, 0.02%)</title><rect x="601.3" y="261" width="0.3" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="604.32" y="271.5" ></text>
+</g>
+<g >
+<title>__wt_row_leaf_key_work (228 samples, 0.38%)</title><rect x="51.0" y="437" width="6.0" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="53.96" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_session_lock_dhandle (1,181 samples, 1.97%)</title><rect x="943.7" y="325" width="31.1" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="946.73" y="335.5" >__..</text>
+</g>
+<g >
+<title>filemap_read (9 samples, 0.02%)</title><rect x="601.3" y="165" width="0.3" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="604.32" y="175.5" ></text>
+</g>
+<g >
+<title>__wt_session_dhandle_sweep (10 samples, 0.02%)</title><rect x="1179.1" y="373" width="0.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1182.08" y="383.5" ></text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (189 samples, 0.32%)</title><rect x="1198.4" y="389" width="5.0" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1201.41" y="399.5" ></text>
+</g>
+<g >
+<title>tc_realloc (67 samples, 0.11%)</title><rect x="311.0" y="325" width="1.8" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="314.00" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_readlock (1,087 samples, 1.81%)</title><rect x="1446.1" y="325" width="28.7" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="1449.14" y="335.5" >__..</text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (241 samples, 0.40%)</title><rect x="287.0" y="389" width="6.4" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="290.05" y="399.5" ></text>
+</g>
+<g >
+<title>tc_realloc (41 samples, 0.07%)</title><rect x="1355.4" y="341" width="1.1" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="1358.44" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::WiredTigerIndex::insert (59,974 samples, 99.99%)</title><rect x="10.1" y="549" width="1579.9" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="13.08" y="559.5" >mongo::WiredTigerIndex::insert</text>
+</g>
+<g >
+<title>__wt_session_gen_leave (350 samples, 0.58%)</title><rect x="803.3" y="341" width="9.3" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="806.35" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_session_cursor_cache_sweep.part.11 (24 samples, 0.04%)</title><rect x="671.9" y="357" width="0.7" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="674.92" y="367.5" ></text>
+</g>
+<g >
+<title>el0t_64_irq (7 samples, 0.01%)</title><rect x="557.0" y="437" width="0.2" height="15.0" fill="rgb(247,194,46)" rx="2" ry="2" />
+<text  x="560.04" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_tree_walk (4 samples, 0.01%)</title><rect x="780.5" y="325" width="0.1" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="783.48" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_reset (65 samples, 0.11%)</title><rect x="1173.4" y="325" width="1.7" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="1176.36" y="335.5" ></text>
+</g>
+<g >
+<title>__posix_file_read (11 samples, 0.02%)</title><rect x="601.3" y="341" width="0.3" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="604.27" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_curhs_open (5,250 samples, 8.75%)</title><rect x="1418.1" y="421" width="138.3" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="1421.09" y="431.5" >__wt_curhs_open</text>
+</g>
+<g >
+<title>__wt_struct_sizev (943 samples, 1.57%)</title><rect x="1393.2" y="373" width="24.8" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1396.19" y="383.5" >_..</text>
+</g>
+<g >
+<title>__schedule (20 samples, 0.03%)</title><rect x="46.8" y="261" width="0.6" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="49.83" y="271.5" ></text>
+</g>
+<g >
+<title>__handle_mm_fault (4 samples, 0.01%)</title><rect x="49.5" y="213" width="0.1" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="52.49" y="223.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (234 samples, 0.39%)</title><rect x="1168.9" y="341" width="6.2" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="1171.93" y="351.5" ></text>
+</g>
+<g >
+<title>tc_realloc (8 samples, 0.01%)</title><rect x="312.8" y="341" width="0.2" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="315.76" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_bt_read (16 samples, 0.03%)</title><rect x="601.3" y="389" width="0.4" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="604.27" y="399.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync_handler (12 samples, 0.02%)</title><rect x="601.0" y="357" width="0.3" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="603.95" y="367.5" ></text>
+</g>
+<g >
+<title>__arm64_sys_sched_yield (28 samples, 0.05%)</title><rect x="46.8" y="293" width="0.7" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="49.77" y="303.5" ></text>
+</g>
+<g >
+<title>__tree_walk_internal (232 samples, 0.39%)</title><rect x="44.9" y="437" width="6.1" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="47.85" y="447.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (356 samples, 0.59%)</title><rect x="1383.5" y="357" width="9.4" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1386.50" y="367.5" ></text>
+</g>
+<g >
+<title>vma_alloc_zeroed_movable_folio (4 samples, 0.01%)</title><rect x="49.5" y="197" width="0.1" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="52.49" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_close (558 samples, 0.93%)</title><rect x="1188.7" y="405" width="14.7" height="15.0" fill="rgb(213,36,8)" rx="2" ry="2" />
+<text  x="1191.69" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (22 samples, 0.04%)</title><rect x="1265.3" y="325" width="0.6" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1268.32" y="335.5" ></text>
+</g>
+<g >
+<title>memcpy (7 samples, 0.01%)</title><rect x="1332.7" y="389" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1335.68" y="399.5" ></text>
+</g>
+<g >
+<title>__cursor_config_debug.isra.9 (49 samples, 0.08%)</title><rect x="474.7" y="373" width="1.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="477.72" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (4 samples, 0.01%)</title><rect x="1226.0" y="325" width="0.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1229.05" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_reopen (445 samples, 0.74%)</title><rect x="932.0" y="325" width="11.7" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="934.98" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_checksum_hw (4 samples, 0.01%)</title><rect x="48.3" y="341" width="0.1" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="51.25" y="351.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (8 samples, 0.01%)</title><rect x="814.8" y="341" width="0.2" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="817.83" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_free_update_list (32 samples, 0.05%)</title><rect x="523.1" y="405" width="0.9" height="15.0" fill="rgb(254,229,54)" rx="2" ry="2" />
+<text  x="526.11" y="415.5" ></text>
+</g>
+<g >
+<title>__curhs_reset (126 samples, 0.21%)</title><rect x="812.6" y="373" width="3.3" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="815.59" y="383.5" ></text>
+</g>
+<g >
+<title>__evict_page (8 samples, 0.01%)</title><rect x="602.8" y="389" width="0.3" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="605.85" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_evict (19 samples, 0.03%)</title><rect x="1589.3" y="437" width="0.5" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="1592.32" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_search_near (4,040 samples, 6.74%)</title><rect x="162.3" y="357" width="106.4" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="165.26" y="367.5" >__wt_btcur_se..</text>
+</g>
+<g >
+<title>__wt_free_int (37 samples, 0.06%)</title><rect x="144.9" y="373" width="1.0" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="147.88" y="383.5" ></text>
+</g>
+<g >
+<title>generic_file_read_iter (6 samples, 0.01%)</title><rect x="1113.0" y="197" width="0.2" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="1116.01" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_row_leaf_key_work (387 samples, 0.65%)</title><rect x="603.1" y="437" width="10.2" height="15.0" fill="rgb(216,54,12)" rx="2" ry="2" />
+<text  x="606.09" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_set_func (480 samples, 0.80%)</title><rect x="751.7" y="293" width="12.6" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="754.66" y="303.5" ></text>
+</g>
+<g >
+<title>invoke_syscall.constprop.0 (15 samples, 0.03%)</title><rect x="47.8" y="245" width="0.4" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="50.80" y="255.5" ></text>
+</g>
+<g >
+<title>memset (8 samples, 0.01%)</title><rect x="1556.2" y="405" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1559.18" y="415.5" ></text>
+</g>
+<g >
+<title>copy_page_to_iter (12 samples, 0.02%)</title><rect x="47.9" y="149" width="0.3" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="50.85" y="159.5" ></text>
+</g>
+<g >
+<title>__cursor_config_debug.isra.9 (49 samples, 0.08%)</title><rect x="1008.2" y="373" width="1.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1011.19" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_session_release_dhandle (466 samples, 0.78%)</title><rect x="672.9" y="357" width="12.3" height="15.0" fill="rgb(227,105,25)" rx="2" ry="2" />
+<text  x="675.90" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen (10 samples, 0.02%)</title><rect x="802.7" y="341" width="0.2" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="805.66" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_free_int (35 samples, 0.06%)</title><rect x="695.8" y="373" width="1.0" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="698.84" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_malloc (67 samples, 0.11%)</title><rect x="1554.4" y="389" width="1.8" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1557.41" y="399.5" ></text>
+</g>
+<g >
+<title>clock_gettime (22 samples, 0.04%)</title><rect x="120.0" y="325" width="0.5" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="122.96" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (226 samples, 0.38%)</title><rect x="1550.2" y="405" width="6.0" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1553.22" y="415.5" ></text>
+</g>
+<g >
+<title>memcpy (8 samples, 0.01%)</title><rect x="847.6" y="373" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="850.63" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::CommandOpRunner::run (59,978 samples, 100.00%)</title><rect x="10.0" y="1013" width="1580.0" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="13.00" y="1023.5" >mongo::(anonymous namespace)::CommandOpRunner::run</text>
+</g>
+<g >
+<title>tc_realloc (8 samples, 0.01%)</title><rect x="1356.5" y="357" width="0.3" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="1359.55" y="367.5" ></text>
+</g>
+<g >
+<title>tc_malloc (40 samples, 0.07%)</title><rect x="1555.1" y="373" width="1.1" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="1558.12" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_row_modify (10 samples, 0.02%)</title><rect x="1113.9" y="325" width="0.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1116.90" y="335.5" ></text>
+</g>
+<g >
+<title>memcpy (10 samples, 0.02%)</title><rect x="286.8" y="373" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="289.79" y="383.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync (75 samples, 0.13%)</title><rect x="45.7" y="373" width="2.0" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="48.75" y="383.5" ></text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (66 samples, 0.11%)</title><rect x="670.1" y="325" width="1.8" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="673.13" y="335.5" ></text>
+</g>
+<g >
+<title>vfs_read (15 samples, 0.03%)</title><rect x="47.8" y="213" width="0.4" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="50.80" y="223.5" ></text>
+</g>
+<g >
+<title>__wt_value_return_buf (618 samples, 1.03%)</title><rect x="1058.0" y="421" width="16.3" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1061.03" y="431.5" ></text>
+</g>
+<g >
+<title>el0_interrupt (7 samples, 0.01%)</title><rect x="557.0" y="389" width="0.2" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="560.04" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_row_modify (17 samples, 0.03%)</title><rect x="50.1" y="309" width="0.5" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="53.12" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_skip_page (108 samples, 0.18%)</title><rect x="44.9" y="421" width="2.8" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="47.88" y="431.5" ></text>
+</g>
+<g >
+<title>__kernel_clock_gettime (18 samples, 0.03%)</title><rect x="120.1" y="309" width="0.4" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="123.06" y="319.5" ></text>
+</g>
+<g >
+<title>do_translation_fault (4 samples, 0.01%)</title><rect x="48.0" y="53" width="0.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="51.04" y="63.5" ></text>
+</g>
+<g >
+<title>__curfile_cache (984 samples, 1.64%)</title><rect x="1152.5" y="373" width="25.9" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1155.50" y="383.5" >_..</text>
+</g>
+<g >
+<title>__wt_cursor_cache (976 samples, 1.63%)</title><rect x="1152.7" y="357" width="25.7" height="15.0" fill="rgb(232,127,30)" rx="2" ry="2" />
+<text  x="1155.71" y="367.5" >_..</text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (175 samples, 0.29%)</title><rect x="145.9" y="373" width="4.6" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="148.88" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_close (654 samples, 1.09%)</title><rect x="133.3" y="389" width="17.2" height="15.0" fill="rgb(213,36,8)" rx="2" ry="2" />
+<text  x="136.26" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (5 samples, 0.01%)</title><rect x="723.7" y="309" width="0.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="726.74" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (327 samples, 0.55%)</title><rect x="175.0" y="309" width="8.7" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="178.04" y="319.5" ></text>
+</g>
+<g >
+<title>__curhs_close (2,596 samples, 4.33%)</title><rect x="82.1" y="405" width="68.4" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="85.10" y="415.5" >__curhs..</text>
+</g>
+<g >
+<title>mongo::WiredTigerIndexUnique::_insert (59,973 samples, 99.99%)</title><rect x="10.1" y="533" width="1579.9" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="13.11" y="543.5" >mongo::WiredTigerIndexUnique::_insert</text>
+</g>
+<g >
+<title>__wt_cache_eviction_worker (8 samples, 0.01%)</title><rect x="602.8" y="405" width="0.3" height="15.0" fill="rgb(206,9,2)" rx="2" ry="2" />
+<text  x="605.85" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::insertKeys (59,974 samples, 99.99%)</title><rect x="10.1" y="565" width="1579.9" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="13.08" y="575.5" >mongo::AbstractIndexAccessMethod::insertKeys</text>
+</g>
+<g >
+<title>__wt_btcur_next_prefix (19,354 samples, 32.27%)</title><rect x="1079.5" y="469" width="509.8" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="1082.47" y="479.5" >__wt_btcur_next_prefix</text>
+</g>
+<g >
+<title>__cursor_reset (58 samples, 0.10%)</title><rect x="1171.8" y="325" width="1.6" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="1174.83" y="335.5" ></text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (158 samples, 0.26%)</title><rect x="696.8" y="373" width="4.1" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="699.76" y="383.5" ></text>
+</g>
+<g >
+<title>invoke_syscall.constprop.0 (31 samples, 0.05%)</title><rect x="46.7" y="309" width="0.8" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="49.70" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (342 samples, 0.57%)</title><rect x="500.2" y="373" width="9.0" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="503.19" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_clear (10 samples, 0.02%)</title><rect x="748.6" y="309" width="0.3" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="751.63" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_search_near (3,783 samples, 6.31%)</title><rect x="1213.2" y="373" width="99.7" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="1216.24" y="383.5" >__wt_btcur_s..</text>
+</g>
+<g >
+<title>el0t_64_sync (10 samples, 0.02%)</title><rect x="601.3" y="309" width="0.3" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="604.29" y="319.5" ></text>
+</g>
+<g >
+<title>strncmp (134 samples, 0.22%)</title><rect x="978.6" y="341" width="3.5" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="981.58" y="351.5" ></text>
+</g>
+<g >
+<title>__arm64_sys_sched_yield (7 samples, 0.01%)</title><rect x="601.1" y="293" width="0.1" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="604.06" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_malloc (66 samples, 0.11%)</title><rect x="507.4" y="357" width="1.7" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="510.38" y="367.5" ></text>
+</g>
+<g >
+<title>__curfile_reopen (1,882 samples, 3.14%)</title><rect x="386.6" y="341" width="49.6" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="389.60" y="351.5" >__cur..</text>
+</g>
+<g >
+<title>clock_gettime (13 samples, 0.02%)</title><rect x="120.6" y="325" width="0.4" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="123.61" y="335.5" ></text>
+</g>
+<g >
+<title>__secure_computing (8 samples, 0.01%)</title><rect x="47.5" y="293" width="0.2" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="50.51" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (16 samples, 0.03%)</title><rect x="802.9" y="341" width="0.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="805.92" y="351.5" ></text>
+</g>
+<g >
+<title>copy_page_to_iter (5 samples, 0.01%)</title><rect x="1113.0" y="165" width="0.1" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="1116.01" y="175.5" ></text>
+</g>
+<g >
+<title>__curfile_next (19,354 samples, 32.27%)</title><rect x="1079.5" y="485" width="509.8" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="1082.47" y="495.5" >__curfile_next</text>
+</g>
+<g >
+<title>__split_multi_inmem (24 samples, 0.04%)</title><rect x="50.1" y="325" width="0.7" height="15.0" fill="rgb(232,125,30)" rx="2" ry="2" />
+<text  x="53.12" y="335.5" ></text>
+</g>
+<g >
+<title>strcmp (173 samples, 0.29%)</title><rect x="1474.8" y="357" width="4.5" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="1477.78" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_skip_page (28 samples, 0.05%)</title><rect x="600.5" y="421" width="0.8" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="603.53" y="431.5" ></text>
+</g>
+<g >
+<title>do_el0_svc (15 samples, 0.03%)</title><rect x="47.8" y="261" width="0.4" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="50.80" y="271.5" ></text>
+</g>
+<g >
+<title>__curfile_insert (25 samples, 0.04%)</title><rect x="1589.3" y="501" width="0.7" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1592.32" y="511.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_cache_get (2,294 samples, 3.82%)</title><rect x="384.4" y="357" width="60.4" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="387.36" y="367.5" >__wt_c..</text>
+</g>
+<g >
+<title>__wt_malloc (75 samples, 0.13%)</title><rect x="1053.9" y="373" width="2.0" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1056.95" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_page_alloc (9 samples, 0.02%)</title><rect x="49.4" y="373" width="0.3" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="52.44" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_skip_page.part.9 (13 samples, 0.02%)</title><rect x="1112.6" y="421" width="0.4" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="1115.61" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_set_func (572 samples, 0.95%)</title><rect x="787.6" y="309" width="15.1" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="790.59" y="319.5" ></text>
+</g>
+<g >
+<title>ext4_file_read_iter (15 samples, 0.03%)</title><rect x="47.8" y="197" width="0.4" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="50.80" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (357 samples, 0.60%)</title><rect x="1303.5" y="357" width="9.4" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1306.49" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_readunlock (220 samples, 0.37%)</title><rect x="1182.9" y="357" width="5.8" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="1185.90" y="367.5" ></text>
+</g>
+<g >
+<title>memcpy (5 samples, 0.01%)</title><rect x="613.1" y="421" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="616.15" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_keyv (2,560 samples, 4.27%)</title><rect x="849.1" y="373" width="67.5" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="852.13" y="383.5" >__wt_cu..</text>
+</g>
+<g >
+<title>__wt_btcur_prev (1,866 samples, 3.11%)</title><rect x="184.0" y="341" width="49.2" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="187.02" y="351.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_epoch_raw (23 samples, 0.04%)</title><rect x="671.9" y="341" width="0.7" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="674.95" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::CommandHelpers::runCommandInvocation (59,978 samples, 100.00%)</title><rect x="10.0" y="757" width="1580.0" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="13.00" y="767.5" >mongo::CommandHelpers::runCommandInvocation</text>
+</g>
+<g >
+<title>mongo::CollectionImpl::_insertDocuments (59,978 samples, 100.00%)</title><rect x="10.0" y="661" width="1580.0" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="13.00" y="671.5" >mongo::CollectionImpl::_insertDocuments</text>
+</g>
+<g >
+<title>__split_multi_inmem (4 samples, 0.01%)</title><rect x="603.0" y="325" width="0.1" height="15.0" fill="rgb(232,125,30)" rx="2" ry="2" />
+<text  x="605.95" y="335.5" ></text>
+</g>
+<g >
+<title>strlen (5 samples, 0.01%)</title><rect x="987.7" y="341" width="0.1" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="990.67" y="351.5" ></text>
+</g>
+<g >
+<title>__curhs_set_key (3,001 samples, 5.00%)</title><rect x="1339.0" y="421" width="79.1" height="15.0" fill="rgb(242,171,41)" rx="2" ry="2" />
+<text  x="1342.03" y="431.5" >__curhs_s..</text>
+</g>
+<g >
+<title>__wt_hazard_clear (14 samples, 0.02%)</title><rect x="1249.3" y="325" width="0.4" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="1252.33" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_page_inmem (44 samples, 0.07%)</title><rect x="601.7" y="389" width="1.1" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="604.69" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_cache (56 samples, 0.09%)</title><rect x="668.4" y="325" width="1.4" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="671.36" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_get_hash (261 samples, 0.44%)</title><rect x="444.8" y="357" width="6.9" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="447.79" y="367.5" ></text>
+</g>
+<g >
+<title>clock_gettime (6 samples, 0.01%)</title><rect x="1179.2" y="341" width="0.1" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1182.18" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_clear (11 samples, 0.02%)</title><rect x="199.6" y="309" width="0.3" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="202.62" y="319.5" ></text>
+</g>
+<g >
+<title>ext4_file_read_iter (6 samples, 0.01%)</title><rect x="1113.0" y="213" width="0.2" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="1116.01" y="223.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::CmdInsert::Invocation::typedRun (59,978 samples, 100.00%)</title><rect x="10.0" y="725" width="1580.0" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="13.00" y="735.5" >mongo::(anonymous namespace)::CmdInsert::Invocation::typedRun</text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (234 samples, 0.39%)</title><rect x="1332.9" y="405" width="6.1" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1335.87" y="415.5" ></text>
+</g>
+<g >
+<title>tc_calloc (319 samples, 0.53%)</title><rect x="452.4" y="373" width="8.4" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="455.43" y="383.5" ></text>
+</g>
+<g >
+<title>__arch_copy_to_user (5 samples, 0.01%)</title><rect x="1113.0" y="149" width="0.1" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1116.01" y="159.5" ></text>
+</g>
+<g >
+<title>mongo::TypedCommand&lt;mongo::(anonymous namespace)::CmdInsert&gt;::InvocationBase::run (59,978 samples, 100.00%)</title><rect x="10.0" y="741" width="1580.0" height="15.0" fill="rgb(207,11,2)" rx="2" ry="2" />
+<text  x="13.00" y="751.5" >mongo::TypedCommand&lt;mongo::(anonymous namespace)::CmdInsert&gt;::InvocationBase::run</text>
+</g>
+<g >
+<title>el1h_64_sync_handler (4 samples, 0.01%)</title><rect x="601.4" y="101" width="0.1" height="15.0" fill="rgb(233,129,30)" rx="2" ry="2" />
+<text  x="604.43" y="111.5" ></text>
+</g>
+<g >
+<title>el0t_64_irq (5 samples, 0.01%)</title><rect x="548.5" y="405" width="0.1" height="15.0" fill="rgb(247,194,46)" rx="2" ry="2" />
+<text  x="551.45" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::wiredTigerCursorInsert (25 samples, 0.04%)</title><rect x="1589.3" y="517" width="0.7" height="15.0" fill="rgb(208,15,3)" rx="2" ry="2" />
+<text  x="1592.32" y="527.5" ></text>
+</g>
+<g >
+<title>__wt_reconcile (10 samples, 0.02%)</title><rect x="49.9" y="357" width="0.2" height="15.0" fill="rgb(230,116,27)" rx="2" ry="2" />
+<text  x="52.86" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::generalImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::propagateResultTo(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*) &amp;&amp;::{lambda(mongo::future_details::FakeVoid&amp;&amp;)#1}, mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::propagateResultTo(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*) &amp;&amp;::{lambda(mongo::Status&amp;&amp;)#2}, mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::propagateResultTo(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*) &amp;&amp;::{lambda()#3}&gt; (59,978 samples, 100.00%)</title><rect x="10.0" y="933" width="1580.0" height="15.0" fill="rgb(240,165,39)" rx="2" ry="2" />
+<text  x="13.00" y="943.5" >mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::generalImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::propagateResultTo(mongo::future_details::SharedStateImpl&lt;mongo::future_de..</text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (91 samples, 0.15%)</title><rect x="829.7" y="389" width="2.4" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="832.66" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (105 samples, 0.18%)</title><rect x="1344.3" y="405" width="2.7" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="1347.27" y="415.5" ></text>
+</g>
+<g >
+<title>__schedule (4 samples, 0.01%)</title><rect x="47.4" y="245" width="0.1" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="50.38" y="255.5" ></text>
+</g>
+<g >
+<title>exit_to_user_mode_loop (4 samples, 0.01%)</title><rect x="557.0" y="373" width="0.1" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="560.04" y="383.5" ></text>
+</g>
+<g >
+<title>__curfile_close (1,568 samples, 2.61%)</title><rect x="1147.4" y="405" width="41.3" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1150.39" y="415.5" >__c..</text>
+</g>
+<g >
+<title>__page_read (80 samples, 0.13%)</title><rect x="47.7" y="405" width="2.2" height="15.0" fill="rgb(243,175,41)" rx="2" ry="2" />
+<text  x="50.75" y="415.5" ></text>
+</g>
+<g >
+<title>tc_calloc (296 samples, 0.49%)</title><rect x="988.5" y="373" width="7.8" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="991.48" y="383.5" ></text>
+</g>
+<g >
+<title>strlen (4 samples, 0.01%)</title><rect x="1393.1" y="357" width="0.1" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1396.09" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_bm_read (12 samples, 0.02%)</title><rect x="1113.0" y="389" width="0.3" height="15.0" fill="rgb(242,170,40)" rx="2" ry="2" />
+<text  x="1115.95" y="399.5" ></text>
+</g>
+<g >
+<title>invoke_syscall.constprop.0 (6 samples, 0.01%)</title><rect x="1113.0" y="261" width="0.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1116.01" y="271.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (238 samples, 0.40%)</title><rect x="1544.0" y="405" width="6.2" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1546.95" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::transport::ServiceStateMachine::Impl::processMessage (59,978 samples, 100.00%)</title><rect x="10.0" y="1061" width="1580.0" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="13.00" y="1071.5" >mongo::transport::ServiceStateMachine::Impl::processMessage</text>
+</g>
+<g >
+<title>__tree_walk_internal (396 samples, 0.66%)</title><rect x="173.2" y="325" width="10.5" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="176.22" y="335.5" ></text>
+</g>
+<g >
+<title>handle_mm_fault (4 samples, 0.01%)</title><rect x="49.5" y="229" width="0.1" height="15.0" fill="rgb(234,135,32)" rx="2" ry="2" />
+<text  x="52.49" y="239.5" ></text>
+</g>
+<g >
+<title>vfs_read (6 samples, 0.01%)</title><rect x="1113.0" y="229" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1116.01" y="239.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_prev (19,825 samples, 33.05%)</title><rect x="557.2" y="453" width="522.3" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="560.22" y="463.5" >__wt_btcur_prev</text>
+</g>
+<g >
+<title>__wt_page_inmem (22 samples, 0.04%)</title><rect x="1113.3" y="405" width="0.6" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="1116.27" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_iterate_setup (8 samples, 0.01%)</title><rect x="1234.2" y="341" width="0.2" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="1237.21" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (101 samples, 0.17%)</title><rect x="815.9" y="373" width="2.7" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="818.91" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceEntryPointMongod::handleRequest (59,978 samples, 100.00%)</title><rect x="10.0" y="1045" width="1580.0" height="15.0" fill="rgb(226,97,23)" rx="2" ry="2" />
+<text  x="13.00" y="1055.5" >mongo::ServiceEntryPointMongod::handleRequest</text>
+</g>
+<g >
+<title>__cursor_reset (127 samples, 0.21%)</title><rect x="715.9" y="341" width="3.4" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="718.91" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_readunlock (315 samples, 0.53%)</title><rect x="124.9" y="341" width="8.3" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="127.91" y="351.5" ></text>
+</g>
+<g >
+<title>strcmp (191 samples, 0.32%)</title><rect x="436.2" y="341" width="5.0" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="439.20" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_clear (5 samples, 0.01%)</title><rect x="174.6" y="309" width="0.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="177.64" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_reset (79 samples, 0.13%)</title><rect x="270.0" y="357" width="2.1" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="273.03" y="367.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync_handler (75 samples, 0.13%)</title><rect x="45.7" y="357" width="2.0" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="48.75" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_hazard_clear (8 samples, 0.01%)</title><rect x="1225.8" y="325" width="0.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="1228.78" y="335.5" ></text>
+</g>
+<g >
+<title>do_translation_fault (4 samples, 0.01%)</title><rect x="49.5" y="261" width="0.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="52.49" y="271.5" ></text>
+</g>
+<g >
+<title>mongo::ServiceEntryPointCommon::handleRequest (59,978 samples, 100.00%)</title><rect x="10.0" y="1029" width="1580.0" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="13.00" y="1039.5" >mongo::ServiceEntryPointCommon::handleRequest</text>
+</g>
+<g >
+<title>__wt_free_int (13 samples, 0.02%)</title><rect x="1176.2" y="341" width="0.3" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="1179.18" y="351.5" ></text>
+</g>
+<g >
+<title>__page_read (60 samples, 0.10%)</title><rect x="601.3" y="405" width="1.5" height="15.0" fill="rgb(243,175,41)" rx="2" ry="2" />
+<text  x="604.27" y="415.5" ></text>
+</g>
+<g >
+<title>__curhs_search_near (4,996 samples, 8.33%)</title><rect x="152.8" y="389" width="131.6" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="155.78" y="399.5" >__curhs_search_n..</text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void (mongo::future_details::SharedStateBase*)&gt;::makeImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::makeContinuation&lt;void, mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}&amp;&amp;) &amp;&amp;::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*, mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*)#1}&gt;(mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}&amp;&amp;) &amp;&amp;::{lambda()#3}::operator()() const::{lambda(mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*, mongo::future_details::SharedStateImpl&lt;mongo::future_details::FakeVoid&gt;*)#1}&amp;&amp;)::{lambda(mongo::future_details::SharedStateBase*)#1}&gt;(mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="901" width="1580.0" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="13.00" y="911.5" >mongo::unique_function&lt;void (mongo::future_details::SharedStateBase*)&gt;::makeImpl&lt;mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::makeContinuation&lt;void, mongo::future_details::FutureImpl&lt;mongo::future_d..</text>
+</g>
+<g >
+<title>strlen (8 samples, 0.01%)</title><rect x="349.2" y="341" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="352.22" y="351.5" ></text>
+</g>
+<g >
+<title>conn* (59,978 samples, 100.00%)</title><rect x="10.0" y="1221" width="1580.0" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="13.00" y="1231.5" >conn*</text>
+</g>
+<g >
+<title>__wt_split_multi (14 samples, 0.02%)</title><rect x="1113.9" y="373" width="0.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1116.90" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_block_read_off (12 samples, 0.02%)</title><rect x="1113.0" y="373" width="0.3" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="1115.95" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_valid (28 samples, 0.05%)</title><rect x="1281.4" y="357" width="0.8" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1284.44" y="367.5" ></text>
+</g>
+<g >
+<title>__alloc_frozen_pages_noprof (4 samples, 0.01%)</title><rect x="49.5" y="165" width="0.1" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="52.49" y="175.5" ></text>
+</g>
+<g >
+<title>el0_svc (7 samples, 0.01%)</title><rect x="1113.0" y="293" width="0.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1115.98" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_session_release_dhandle (355 samples, 0.59%)</title><rect x="1179.3" y="373" width="9.4" height="15.0" fill="rgb(227,105,25)" rx="2" ry="2" />
+<text  x="1182.34" y="383.5" ></text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::launchServiceWorkerThread(mongo::unique_function&lt;void ()&gt;)::{lambda()#4}&gt;(mongo::launchServiceWorkerThread(mongo::unique_function&lt;void ()&gt;)::{lambda()#4}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="1173" width="1580.0" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="13.00" y="1183.5" >mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::launchServiceWorkerThread(mongo::unique_function&lt;void ()&gt;)::{lambda()#4}&gt;(mongo::launchServiceWorkerThread(mongo::unique_function&lt;void ()&gt;)::{lambda()#4}&amp;&amp;)::SpecificImpl::..</text>
+</g>
+<g >
+<title>__wt_row_search (791 samples, 1.32%)</title><rect x="1282.2" y="357" width="20.8" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1285.18" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (369 samples, 0.62%)</title><rect x="723.9" y="309" width="9.7" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="726.87" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_split_multi (18 samples, 0.03%)</title><rect x="1589.3" y="421" width="0.5" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1592.34" y="431.5" ></text>
+</g>
+<g >
+<title>ext4_file_read_iter (9 samples, 0.02%)</title><rect x="601.3" y="197" width="0.3" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="604.32" y="207.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (121 samples, 0.20%)</title><rect x="47.7" y="421" width="3.2" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="50.75" y="431.5" ></text>
+</g>
+<g >
+<title>__arch_copy_to_user (11 samples, 0.02%)</title><rect x="47.9" y="133" width="0.2" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="50.85" y="143.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (57 samples, 0.10%)</title><rect x="665.0" y="309" width="1.5" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="667.97" y="319.5" ></text>
+</g>
+<g >
+<title>__evict_page (19 samples, 0.03%)</title><rect x="1589.3" y="453" width="0.5" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="1592.32" y="463.5" ></text>
+</g>
+<g >
+<title>__curhs_search_near (4,818 samples, 8.03%)</title><rect x="702.7" y="389" width="127.0" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="705.74" y="399.5" >__curhs_search_..</text>
+</g>
+<g >
+<title>__wt_session_gen_enter (22 samples, 0.04%)</title><rect x="764.3" y="309" width="0.6" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="767.33" y="319.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::RunCommandImpl::_runCommand (59,978 samples, 100.00%)</title><rect x="10.0" y="805" width="1580.0" height="15.0" fill="rgb(234,134,32)" rx="2" ry="2" />
+<text  x="13.00" y="815.5" >mongo::(anonymous namespace)::RunCommandImpl::_runCommand</text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::transport::ServiceExecutor::schedule(mongo::unique_function&lt;void (mongo::Status)&gt;)::{lambda()#1}&gt;(mongo::transport::ServiceExecutor::schedule(mongo::unique_function&lt;void (mongo::Status)&gt;)::{lambda()#1}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="1141" width="1580.0" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="13.00" y="1151.5" >mongo::unique_function&lt;void ()&gt;::makeImpl&lt;mongo::transport::ServiceExecutor::schedule(mongo::unique_function&lt;void (mongo::Status)&gt;)::{lambda()#1}&gt;(mongo::transport::ServiceExecutor::schedule(mongo::unique_function&lt;void (m..</text>
+</g>
+<g >
+<title>__posix_file_read (16 samples, 0.03%)</title><rect x="47.8" y="341" width="0.4" height="15.0" fill="rgb(223,83,19)" rx="2" ry="2" />
+<text  x="50.78" y="351.5" ></text>
+</g>
+<g >
+<title>tc_malloc (42 samples, 0.07%)</title><rect x="521.7" y="357" width="1.1" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="524.71" y="367.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}::operator() (59,978 samples, 100.00%)</title><rect x="10.0" y="885" width="1580.0" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="13.00" y="895.5" >mongo::(anonymous namespace)::executeCommand(std::shared_ptr&lt;mongo::(anonymous namespace)::HandleRequest::ExecutionContext&gt;)::{lambda()#2}::operator()</text>
+</g>
+<g >
+<title>__curhs_file_cursor_open (2,633 samples, 4.39%)</title><rect x="382.3" y="389" width="69.4" height="15.0" fill="rgb(229,113,27)" rx="2" ry="2" />
+<text  x="385.31" y="399.5" >__curhs..</text>
+</g>
+<g >
+<title>__wt_free_int (30 samples, 0.05%)</title><rect x="1197.6" y="389" width="0.8" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="1200.62" y="399.5" ></text>
+</g>
+<g >
+<title>clock_gettime (11 samples, 0.02%)</title><rect x="672.6" y="325" width="0.3" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="675.61" y="335.5" ></text>
+</g>
+<g >
+<title>__el0_irq_handler_common (4 samples, 0.01%)</title><rect x="436.0" y="261" width="0.1" height="15.0" fill="rgb(206,5,1)" rx="2" ry="2" />
+<text  x="439.02" y="271.5" ></text>
+</g>
+<g >
+<title>__wt_multi_to_ref (18 samples, 0.03%)</title><rect x="1589.3" y="405" width="0.5" height="15.0" fill="rgb(227,104,24)" rx="2" ry="2" />
+<text  x="1592.34" y="415.5" ></text>
+</g>
+<g >
+<title>do_mem_abort (4 samples, 0.01%)</title><rect x="48.0" y="69" width="0.1" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="51.04" y="79.5" ></text>
+</g>
+<g >
+<title>mongo::AbstractIndexAccessMethod::insertKeysAndUpdateMultikeyPaths (59,974 samples, 99.99%)</title><rect x="10.1" y="581" width="1579.9" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="13.08" y="591.5" >mongo::AbstractIndexAccessMethod::insertKeysAndUpdateMultikeyPaths</text>
+</g>
+<g >
+<title>__wt_hazard_set_func (469 samples, 0.78%)</title><rect x="1252.9" y="309" width="12.4" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1255.92" y="319.5" ></text>
+</g>
+<g >
+<title>__curhs_search_near (4,735 samples, 7.89%)</title><rect x="1205.6" y="405" width="124.7" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="1208.55" y="415.5" >__curhs_search_..</text>
+</g>
+<g >
+<title>do_el0_svc (6 samples, 0.01%)</title><rect x="1113.0" y="277" width="0.2" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1116.01" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (383 samples, 0.64%)</title><rect x="1032.4" y="373" width="10.1" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1035.42" y="383.5" ></text>
+</g>
+<g >
+<title>__sched_yield (96 samples, 0.16%)</title><rect x="45.2" y="389" width="2.5" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="48.19" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_update_vector_init (19 samples, 0.03%)</title><rect x="1057.5" y="405" width="0.5" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="1060.53" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_evict (8 samples, 0.01%)</title><rect x="602.8" y="373" width="0.3" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="605.85" y="383.5" ></text>
+</g>
+<g >
+<title>memcpy (9 samples, 0.02%)</title><rect x="818.3" y="357" width="0.3" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="821.33" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_init (1,755 samples, 2.93%)</title><rect x="1497.7" y="405" width="46.3" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="1500.72" y="415.5" >__wt..</text>
+</g>
+<g >
+<title>el0t_64_irq (4 samples, 0.01%)</title><rect x="436.0" y="293" width="0.1" height="15.0" fill="rgb(247,194,46)" rx="2" ry="2" />
+<text  x="439.02" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (51 samples, 0.09%)</title><rect x="1113.0" y="437" width="1.3" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="1115.95" y="447.5" ></text>
+</g>
+<g >
+<title>__split_multi_inmem (12 samples, 0.02%)</title><rect x="1113.9" y="341" width="0.3" height="15.0" fill="rgb(232,125,30)" rx="2" ry="2" />
+<text  x="1116.90" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_update_vector_free (24 samples, 0.04%)</title><rect x="524.0" y="405" width="0.6" height="15.0" fill="rgb(216,50,12)" rx="2" ry="2" />
+<text  x="526.95" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (735 samples, 1.23%)</title><rect x="238.3" y="325" width="19.3" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="241.26" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (181 samples, 0.30%)</title><rect x="308.2" y="357" width="4.8" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="311.20" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_curhs_open (5,298 samples, 8.83%)</title><rect x="916.6" y="405" width="139.6" height="15.0" fill="rgb(240,163,39)" rx="2" ry="2" />
+<text  x="919.59" y="415.5" >__wt_curhs_open</text>
+</g>
+<g >
+<title>strlen (5 samples, 0.01%)</title><rect x="891.2" y="341" width="0.1" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="894.17" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (28 samples, 0.05%)</title><rect x="216.5" y="309" width="0.8" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="219.53" y="319.5" ></text>
+</g>
+<g >
+<title>__seccomp_filter (7 samples, 0.01%)</title><rect x="47.5" y="277" width="0.2" height="15.0" fill="rgb(230,116,27)" rx="2" ry="2" />
+<text  x="50.54" y="287.5" ></text>
+</g>
+<g >
+<title>memcpy (10 samples, 0.02%)</title><rect x="301.9" y="373" width="0.3" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="304.91" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_session_cursor_cache_sweep.part.11 (24 samples, 0.04%)</title><rect x="1178.4" y="373" width="0.7" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1181.44" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_readlock (1,122 samples, 1.87%)</title><rect x="406.6" y="309" width="29.5" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="409.57" y="319.5" >__..</text>
+</g>
+<g >
+<title>__wt_hs_find_upd (16,988 samples, 28.32%)</title><rect x="77.5" y="421" width="447.6" height="15.0" fill="rgb(243,175,42)" rx="2" ry="2" />
+<text  x="80.54" y="431.5" >__wt_hs_find_upd</text>
+</g>
+<g >
+<title>__wt_btcur_iterate_setup (13 samples, 0.02%)</title><rect x="183.7" y="325" width="0.3" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="186.65" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_config_gets_def (918 samples, 1.53%)</title><rect x="476.0" y="373" width="24.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="479.01" y="383.5" >_..</text>
+</g>
+<g >
+<title>el0_interrupt (4 samples, 0.01%)</title><rect x="436.0" y="245" width="0.1" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="439.02" y="255.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_cache_release (1,688 samples, 2.81%)</title><rect x="88.8" y="373" width="44.5" height="15.0" fill="rgb(208,13,3)" rx="2" ry="2" />
+<text  x="91.79" y="383.5" >__wt..</text>
+</g>
+<g >
+<title>__realloc_func (95 samples, 0.16%)</title><rect x="1354.0" y="357" width="2.5" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="1357.02" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_free_update_list (28 samples, 0.05%)</title><rect x="1056.2" y="405" width="0.7" height="15.0" fill="rgb(254,229,54)" rx="2" ry="2" />
+<text  x="1059.19" y="415.5" ></text>
+</g>
+<g >
+<title>memcpy (6 samples, 0.01%)</title><rect x="613.0" y="405" width="0.1" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="615.99" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::write_ops_exec::(anonymous namespace)::insertDocuments (59,978 samples, 100.00%)</title><rect x="10.0" y="693" width="1580.0" height="15.0" fill="rgb(229,112,27)" rx="2" ry="2" />
+<text  x="13.00" y="703.5" >mongo::write_ops_exec::(anonymous namespace)::insertDocuments</text>
+</g>
+<g >
+<title>__schedule (5 samples, 0.01%)</title><rect x="601.1" y="261" width="0.1" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="604.06" y="271.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync (12 samples, 0.02%)</title><rect x="601.0" y="373" width="0.3" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="603.95" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_bt_read (12 samples, 0.02%)</title><rect x="1113.0" y="405" width="0.3" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="1115.95" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_evict (16 samples, 0.03%)</title><rect x="1113.9" y="389" width="0.4" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="1116.85" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_row_search (7 samples, 0.01%)</title><rect x="50.6" y="309" width="0.2" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="53.57" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_skip_page.part.10 (28 samples, 0.05%)</title><rect x="600.5" y="405" width="0.8" height="15.0" fill="rgb(252,217,51)" rx="2" ry="2" />
+<text  x="603.53" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_prev (1,784 samples, 2.97%)</title><rect x="1234.4" y="357" width="47.0" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1237.45" y="367.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_btcur_skip_page.part.9 (107 samples, 0.18%)</title><rect x="44.9" y="405" width="2.8" height="15.0" fill="rgb(210,25,6)" rx="2" ry="2" />
+<text  x="47.90" y="415.5" ></text>
+</g>
+<g >
+<title>__curhs_close (2,481 samples, 4.14%)</title><rect x="635.6" y="405" width="65.3" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="638.57" y="415.5" >__curhs..</text>
+</g>
+<g >
+<title>mongo::IndexCatalogImpl::_indexFilteredRecords (59,977 samples, 100.00%)</title><rect x="10.0" y="613" width="1580.0" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="13.00" y="623.5" >mongo::IndexCatalogImpl::_indexFilteredRecords</text>
+</g>
+<g >
+<title>__cursor_reset (54 samples, 0.09%)</title><rect x="112.8" y="309" width="1.4" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="115.79" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (40,594 samples, 67.68%)</title><rect x="10.1" y="485" width="1069.4" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="13.11" y="495.5" >__curfile_search_near</text>
+</g>
+<g >
+<title>vfs_read (9 samples, 0.02%)</title><rect x="601.3" y="213" width="0.3" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="604.32" y="223.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen (15 samples, 0.03%)</title><rect x="257.6" y="341" width="0.4" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="260.62" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_strndup (255 samples, 0.43%)</title><rect x="1049.2" y="389" width="6.7" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1052.20" y="399.5" ></text>
+</g>
+<g >
+<title>do_el0_svc (39 samples, 0.07%)</title><rect x="46.7" y="325" width="1.0" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="49.70" y="335.5" ></text>
+</g>
+<g >
+<title>strlen (5 samples, 0.01%)</title><rect x="916.4" y="341" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="919.44" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_reopen (393 samples, 0.66%)</title><rect x="1434.1" y="341" width="10.4" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1437.13" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_next_prefix (481 samples, 0.80%)</title><rect x="1221.8" y="357" width="12.6" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="1224.78" y="367.5" ></text>
+</g>
+<g >
+<title>el0_da (4 samples, 0.01%)</title><rect x="49.5" y="293" width="0.1" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="52.49" y="303.5" ></text>
+</g>
+<g >
+<title>__folio_alloc_noprof (4 samples, 0.01%)</title><rect x="49.5" y="181" width="0.1" height="15.0" fill="rgb(247,196,47)" rx="2" ry="2" />
+<text  x="52.49" y="191.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (149 samples, 0.25%)</title><rect x="1352.8" y="373" width="4.0" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="1355.83" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_prev (1,766 samples, 2.94%)</title><rect x="734.1" y="341" width="46.5" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="737.06" y="351.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_rec_split (4 samples, 0.01%)</title><rect x="49.9" y="309" width="0.1" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="52.88" y="319.5" ></text>
+</g>
+<g >
+<title>el1_abort (4 samples, 0.01%)</title><rect x="48.0" y="85" width="0.1" height="15.0" fill="rgb(220,72,17)" rx="2" ry="2" />
+<text  x="51.04" y="95.5" ></text>
+</g>
+<g >
+<title>el0t_64_irq_handler (4 samples, 0.01%)</title><rect x="436.0" y="277" width="0.1" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="439.02" y="287.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (69 samples, 0.12%)</title><rect x="601.3" y="421" width="1.8" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="604.27" y="431.5" ></text>
+</g>
+<g >
+<title>tc_calloc (4 samples, 0.01%)</title><rect x="1113.7" y="357" width="0.1" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="1116.72" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_reset (72 samples, 0.12%)</title><rect x="666.5" y="309" width="1.9" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="669.47" y="319.5" ></text>
+</g>
+<g >
+<title>__kernel_clock_gettime (13 samples, 0.02%)</title><rect x="1178.7" y="325" width="0.4" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1181.73" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_rec_upd_select (5 samples, 0.01%)</title><rect x="50.0" y="309" width="0.1" height="15.0" fill="rgb(238,156,37)" rx="2" ry="2" />
+<text  x="52.99" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_open_cursor (2,434 samples, 4.06%)</title><rect x="923.7" y="373" width="64.1" height="15.0" fill="rgb(208,18,4)" rx="2" ry="2" />
+<text  x="926.68" y="383.5" >__wt_op..</text>
+</g>
+<g >
+<title>el0t_64_sync_handler (16 samples, 0.03%)</title><rect x="47.8" y="293" width="0.4" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="50.78" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_struct_packv (1,383 samples, 2.31%)</title><rect x="1356.8" y="373" width="36.4" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1359.76" y="383.5" >__w..</text>
+</g>
+<g >
+<title>__wt_cursor_get_hash (257 samples, 0.43%)</title><rect x="1483.2" y="373" width="6.8" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="1486.21" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (646 samples, 1.08%)</title><rect x="1286.0" y="341" width="17.0" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="1289.00" y="351.5" ></text>
+</g>
+<g >
+<title>__rec_split_write.constprop.24 (4 samples, 0.01%)</title><rect x="49.9" y="293" width="0.1" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="52.88" y="303.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (388 samples, 0.65%)</title><rect x="274.1" y="373" width="10.2" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="277.11" y="383.5" ></text>
+</g>
+<g >
+<title>__kernel_clock_gettime (10 samples, 0.02%)</title><rect x="672.6" y="309" width="0.3" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="675.63" y="319.5" ></text>
+</g>
+<g >
+<title>__split_multi_inmem (18 samples, 0.03%)</title><rect x="1589.3" y="389" width="0.5" height="15.0" fill="rgb(232,125,30)" rx="2" ry="2" />
+<text  x="1592.34" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_key (2,609 samples, 4.35%)</title><rect x="847.8" y="389" width="68.8" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="850.84" y="399.5" >__wt_cu..</text>
+</g>
+<g >
+<title>el0t_64_sync_handler (4 samples, 0.01%)</title><rect x="49.5" y="309" width="0.1" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="52.49" y="319.5" ></text>
+</g>
+<g >
+<title>__ctype_b_loc (345 samples, 0.58%)</title><rect x="907.3" y="341" width="9.1" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="910.32" y="351.5" ></text>
+</g>
+<g >
+<title>mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&amp;)::{lambda()#2}&gt;(mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&amp;)::{lambda()#2}&amp;&amp;) &amp;&amp;::{lambda(mongo::future_details::FakeVoid&amp;&amp;)#1}::operator() (59,978 samples, 100.00%)</title><rect x="10.0" y="1077" width="1580.0" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="13.00" y="1087.5" >mongo::future_details::FutureImpl&lt;mongo::future_details::FakeVoid&gt;::then&lt;mongo::transport::ServiceStateMachine::Impl::startNewLoop(mongo::Status const&amp;)::{lambda()#2}&gt;(mongo::transport::ServiceStateMachine::Impl::startNew..</text>
+</g>
+<g >
+<title>mongo::unique_function&lt;void (mongo::Status)&gt;::makeImpl&lt;mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&gt;(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&amp;&amp;)::SpecificImpl::call (59,978 samples, 100.00%)</title><rect x="10.0" y="1109" width="1580.0" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="13.00" y="1119.5" >mongo::unique_function&lt;void (mongo::Status)&gt;::makeImpl&lt;mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(mongo::Status)::{lambda(mongo::Status)#1}&gt;(mongo::transport::ServiceStateMachine::Impl::scheduleNewLoop(m..</text>
+</g>
+<g >
+<title>__curhs_search_near_helper (5,241 samples, 8.74%)</title><rect x="700.9" y="405" width="138.1" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="703.92" y="415.5" >__curhs_search_ne..</text>
+</g>
+<g >
+<title>__wt_btcur_search_near (40,594 samples, 67.68%)</title><rect x="10.1" y="469" width="1069.4" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="13.11" y="479.5" >__wt_btcur_search_near</text>
+</g>
+<g >
+<title>mongo::future_details::SharedStateBase::transitionToFinished (59,978 samples, 100.00%)</title><rect x="10.0" y="965" width="1580.0" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="13.00" y="975.5" >mongo::future_details::SharedStateBase::transitionToFinished</text>
+</g>
+<g >
+<title>mongo::wiredTigerPrepareConflictRetry&lt;mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#1}&gt; (40,594 samples, 67.68%)</title><rect x="10.1" y="501" width="1069.4" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="13.11" y="511.5" >mongo::wiredTigerPrepareConflictRetry&lt;mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{..</text>
+</g>
+<g >
+<title>__wt_txn_read_upd_list_internal (318 samples, 0.53%)</title><rect x="548.7" y="437" width="8.3" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="551.66" y="447.5" ></text>
+</g>
+<g >
+<title>__wt_calloc (8 samples, 0.01%)</title><rect x="49.5" y="357" width="0.2" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="52.46" y="367.5" ></text>
+</g>
+<g >
+<title>strlen (6 samples, 0.01%)</title><rect x="1417.9" y="357" width="0.1" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1420.87" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (263 samples, 0.44%)</title><rect x="832.1" y="389" width="6.9" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="835.06" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_page_in_func (630 samples, 1.05%)</title><rect x="199.9" y="309" width="16.6" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="202.91" y="319.5" ></text>
+</g>
+<g >
+<title>__curfile_search_near (3,968 samples, 6.62%)</title><rect x="708.1" y="373" width="104.5" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="711.06" y="383.5" >__curfile_se..</text>
+</g>
+<g >
+<title>__wt_calloc (4 samples, 0.01%)</title><rect x="1113.7" y="373" width="0.1" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="1116.72" y="383.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_keyv (2,754 samples, 4.59%)</title><rect x="303.8" y="373" width="72.5" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="306.75" y="383.5" >__wt_cur..</text>
+</g>
+<g >
+<title>el0t_64_sync_handler (7 samples, 0.01%)</title><rect x="1113.0" y="309" width="0.2" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="1115.98" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_cache_eviction_worker (41 samples, 0.07%)</title><rect x="49.9" y="405" width="1.0" height="15.0" fill="rgb(206,9,2)" rx="2" ry="2" />
+<text  x="52.86" y="415.5" ></text>
+</g>
+<g >
+<title>mongo::(anonymous namespace)::receivedCommands (59,978 samples, 100.00%)</title><rect x="10.0" y="997" width="1580.0" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="13.00" y="1007.5" >mongo::(anonymous namespace)::receivedCommands</text>
+</g>
+<g >
+<title>generic_file_read_iter (9 samples, 0.02%)</title><rect x="601.3" y="181" width="0.3" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="604.32" y="191.5" ></text>
+</g>
+<g >
+<title>tc_malloc (45 samples, 0.08%)</title><rect x="1054.7" y="357" width="1.2" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="1057.74" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (117 samples, 0.20%)</title><rect x="1117.2" y="437" width="3.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="1120.20" y="447.5" ></text>
+</g>
+<g >
+<title>mongo::wiredTigerPrepareConflictRetry&lt;mongo::WiredTigerIndexUnique::_keyExists(mongo::OperationContext*, __wt_cursor*, char const*, unsigned long)::{lambda()#2}&gt; (19,354 samples, 32.27%)</title><rect x="1079.5" y="501" width="509.8" height="15.0" fill="rgb(248,198,47)" rx="2" ry="2" />
+<text  x="1082.47" y="511.5" >mongo::wiredTigerPrepareConflictRetry&lt;mongo::WiredTigerIndexUnique::_k..</text>
+</g>
+<g >
+<title>__wt_cursor_cache_release (1,446 samples, 2.41%)</title><rect x="1150.6" y="389" width="38.1" height="15.0" fill="rgb(208,13,3)" rx="2" ry="2" />
+<text  x="1153.60" y="399.5" >__w..</text>
+</g>
+<g >
+<title>__wt_update_vector_init (18 samples, 0.03%)</title><rect x="524.6" y="405" width="0.5" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="527.58" y="415.5" ></text>
+</g>
+<g >
+<title>__wt_block_read_off (16 samples, 0.03%)</title><rect x="601.3" y="357" width="0.4" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="604.27" y="367.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (10 samples, 0.02%)</title><rect x="271.0" y="341" width="0.3" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="274.01" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_cache (64 samples, 0.11%)</title><rect x="116.3" y="325" width="1.7" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="119.27" y="335.5" ></text>
+</g>
+<g >
+<title>tc_calloc (8 samples, 0.01%)</title><rect x="49.5" y="341" width="0.2" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="52.46" y="351.5" ></text>
+</g>
+<g >
+<title>__curhs_search_near_helper (5,149 samples, 8.58%)</title><rect x="1203.4" y="421" width="135.6" height="15.0" fill="rgb(218,62,14)" rx="2" ry="2" />
+<text  x="1206.39" y="431.5" >__curhs_search_ne..</text>
+</g>
+<g >
+<title>__wt_btcur_reset (78 samples, 0.13%)</title><rect x="114.2" y="309" width="2.1" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="117.21" y="319.5" ></text>
+</g>
+<g >
+<title>tc_malloc (50 samples, 0.08%)</title><rect x="507.8" y="341" width="1.3" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="510.80" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hash_city64 (41 samples, 0.07%)</title><rect x="1488.8" y="357" width="1.0" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="1491.76" y="367.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (146 samples, 0.24%)</title><rect x="1217.9" y="357" width="3.9" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="1220.93" y="367.5" ></text>
+</g>
+<g >
+<title>el0t_64_irq_handler (7 samples, 0.01%)</title><rect x="557.0" y="421" width="0.2" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="560.04" y="431.5" ></text>
+</g>
+<g >
+<title>generic_file_read_iter (15 samples, 0.03%)</title><rect x="47.8" y="181" width="0.4" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="50.80" y="191.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_insert (25 samples, 0.04%)</title><rect x="1589.3" y="485" width="0.7" height="15.0" fill="rgb(206,7,1)" rx="2" ry="2" />
+<text  x="1592.32" y="495.5" ></text>
+</g>
+<g >
+<title>__kernel_clock_gettime (5 samples, 0.01%)</title><rect x="1179.2" y="325" width="0.1" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1182.21" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_update_vector_init (21 samples, 0.04%)</title><rect x="1557.8" y="421" width="0.5" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="1560.76" y="431.5" ></text>
+</g>
+<g >
+<title>__wt_btcur_reset (33 samples, 0.06%)</title><rect x="815.0" y="341" width="0.9" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="818.04" y="351.5" ></text>
+</g>
+<g >
+<title>el0t_64_sync (16 samples, 0.03%)</title><rect x="47.8" y="309" width="0.4" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="50.78" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_update_vector_free (24 samples, 0.04%)</title><rect x="1557.1" y="421" width="0.7" height="15.0" fill="rgb(216,50,12)" rx="2" ry="2" />
+<text  x="1560.12" y="431.5" ></text>
+</g>
+<g >
+<title>memcpy (9 samples, 0.02%)</title><rect x="273.9" y="357" width="0.2" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="276.88" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_hs_find_upd (15,935 samples, 26.57%)</title><rect x="1138.5" y="437" width="419.8" height="15.0" fill="rgb(243,175,42)" rx="2" ry="2" />
+<text  x="1141.53" y="447.5" >__wt_hs_find_upd</text>
+</g>
+<g >
+<title>__wt_scr_alloc_func (244 samples, 0.41%)</title><rect x="1042.8" y="389" width="6.4" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1045.78" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_readlock (1,118 samples, 1.86%)</title><rect x="945.4" y="309" width="29.4" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="948.39" y="319.5" >__..</text>
+</g>
+<g >
+<title>__wt_session_release_dhandle (467 samples, 0.78%)</title><rect x="121.0" y="357" width="12.3" height="15.0" fill="rgb(227,105,25)" rx="2" ry="2" />
+<text  x="123.96" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_enter (16 samples, 0.03%)</title><rect x="1303.1" y="357" width="0.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1306.07" y="367.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_init (1,765 samples, 2.94%)</title><rect x="996.3" y="389" width="46.5" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="999.28" y="399.5" >__wt..</text>
+</g>
+<g >
+<title>__wt_cursor_cache (1,057 samples, 1.76%)</title><rect x="644.0" y="341" width="27.9" height="15.0" fill="rgb(232,127,30)" rx="2" ry="2" />
+<text  x="647.02" y="351.5" >_..</text>
+</g>
+<g >
+<title>__wt_struct_packv (1,269 samples, 2.12%)</title><rect x="857.9" y="357" width="33.4" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="860.88" y="367.5" >__..</text>
+</g>
+<g >
+<title>__kernel_clock_gettime (13 samples, 0.02%)</title><rect x="120.6" y="309" width="0.4" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="123.61" y="319.5" ></text>
+</g>
+<g >
+<title>__wt_session_gen_leave (306 samples, 0.51%)</title><rect x="1226.2" y="325" width="8.0" height="15.0" fill="rgb(220,69,16)" rx="2" ry="2" />
+<text  x="1229.15" y="335.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_keyv (2,640 samples, 4.40%)</title><rect x="1348.5" y="389" width="69.6" height="15.0" fill="rgb(216,53,12)" rx="2" ry="2" />
+<text  x="1351.54" y="399.5" >__wt_cu..</text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (279 samples, 0.47%)</title><rect x="605.8" y="421" width="7.3" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="608.80" y="431.5" ></text>
+</g>
+<g >
+<title>__cursor_reset (142 samples, 0.24%)</title><rect x="166.8" y="341" width="3.7" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="169.77" y="351.5" ></text>
+</g>
+<g >
+<title>__realloc_func (124 samples, 0.21%)</title><rect x="309.5" y="341" width="3.3" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="312.49" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_buf_grow_worker (101 samples, 0.17%)</title><rect x="284.4" y="389" width="2.6" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="287.39" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_calloc (322 samples, 0.54%)</title><rect x="987.8" y="389" width="8.5" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="990.80" y="399.5" ></text>
+</g>
+<g >
+<title>__wt_evict (39 samples, 0.07%)</title><rect x="49.9" y="373" width="1.0" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="52.86" y="383.5" ></text>
+</g>
+<g >
+<title>__el0_irq_handler_common (5 samples, 0.01%)</title><rect x="548.5" y="373" width="0.1" height="15.0" fill="rgb(206,5,1)" rx="2" ry="2" />
+<text  x="551.45" y="383.5" ></text>
+</g>
+<g >
+<title>__curhs_close (2,283 samples, 3.81%)</title><rect x="1143.2" y="421" width="60.2" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="1146.25" y="431.5" >__curh..</text>
+</g>
+<g >
+<title>tc_deletearray_aligned_nothrow (72 samples, 0.12%)</title><rect x="1176.5" y="341" width="1.9" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1179.52" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_cursor_set_key (2,697 samples, 4.50%)</title><rect x="1347.0" y="405" width="71.1" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="1350.04" y="415.5" >__wt_cur..</text>
+</g>
+<g >
+<title>__wt_config_gets_def (882 samples, 1.47%)</title><rect x="1511.2" y="389" width="23.2" height="15.0" fill="rgb(239,160,38)" rx="2" ry="2" />
+<text  x="1514.21" y="399.5" >_..</text>
+</g>
+<g >
+<title>__evict_page (16 samples, 0.03%)</title><rect x="1113.9" y="405" width="0.4" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="1116.85" y="415.5" ></text>
+</g>
+<g >
+<title>tc_realloc (54 samples, 0.09%)</title><rect x="856.4" y="325" width="1.4" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="859.37" y="335.5" ></text>
+</g>
+<g >
+<title>tc_malloc (56 samples, 0.09%)</title><rect x="1542.2" y="357" width="1.4" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="1545.16" y="367.5" ></text>
+</g>
+<g >
+<title>el1h_64_sync (4 samples, 0.01%)</title><rect x="48.0" y="117" width="0.1" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="51.04" y="127.5" ></text>
+</g>
+<g >
+<title>__wt_session_lock_dhandle (1,150 samples, 1.92%)</title><rect x="1444.5" y="341" width="30.3" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1447.48" y="351.5" >__..</text>
+</g>
+<g >
+<title>__curhs_file_cursor_open (2,472 samples, 4.12%)</title><rect x="922.7" y="389" width="65.1" height="15.0" fill="rgb(229,113,27)" rx="2" ry="2" />
+<text  x="925.68" y="399.5" >__curhs..</text>
+</g>
+<g >
+<title>do_page_fault (4 samples, 0.01%)</title><rect x="49.5" y="245" width="0.1" height="15.0" fill="rgb(216,54,13)" rx="2" ry="2" />
+<text  x="52.49" y="255.5" ></text>
+</g>
+<g >
+<title>__tree_walk_internal (377 samples, 0.63%)</title><rect x="1224.3" y="341" width="9.9" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1227.28" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_hash_city64 (50 samples, 0.08%)</title><rect x="450.2" y="341" width="1.3" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="453.17" y="351.5" ></text>
+</g>
+<g >
+<title>__wt_row_search (810 samples, 1.35%)</title><rect x="781.3" y="341" width="21.4" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="784.32" y="351.5" >_..</text>
+</g>
+</g>
+</svg>

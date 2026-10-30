@@ -1,0 +1,23 @@
+local_time,source,charge_pct,note
+2026-10-25 09:54:42 -0400,Battery Power,26,first/last tag
+2026-10-25 12:29:07 -0400,Battery Power,6,last tag before a change
+2026-10-25 12:29:46 -0400,AC Power,6,source changed
+2026-10-25 12:29:46 -0400,Battery Power,6,source changed
+2026-10-25 12:29:51 -0400,AC Power,6,source changed
+2026-10-25 14:27:48 -0400,AC Power,80,last tag before a change
+2026-10-25 14:27:49 -0400,Battery Power,80,source changed
+2026-10-26 12:03:40 -0400,Battery Power,37,last tag before a change
+2026-10-26 12:04:30 -0400,AC Power,3,source changed
+2026-10-26 12:04:30 -0400,AC Power,37,last tag before a change
+2026-10-26 12:04:30 -0400,Battery Power,37,source changed
+2026-10-26 12:04:51 -0400,AC Power,37,source changed
+2026-10-26 19:50:17 -0400,AC Power,100,last tag before a change
+2026-10-26 19:50:18 -0400,Battery Power,100,source changed
+2026-10-27 12:06:00 -0400,Battery Power,68,last tag before a change
+2026-10-27 13:03:31 -0400,AC Power,47,source changed
+2026-10-27 14:53:21 -0400,AC Power,80,last tag before a change
+2026-10-27 16:07:06 -0400,Battery Power,80,source changed
+2026-10-27 22:58:03 -0400,Battery Power,13,last tag before a change
+2026-10-27 22:59:03 -0400,AC Power,13,source changed
+2026-10-27 23:59:17 -0400,Battery Power,80,source changed
+2026-10-28 09:53:51 -0400,Battery Power,68,first/last tag

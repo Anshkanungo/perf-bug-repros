@@ -1,0 +1,2 @@
+0x0000ffffa15fe2a4 in pthread_cond_wait@@GLIBC_2.17 () from /proc/6/root/lib/aarch64-linux-gnu/libpthread.so.0
+snapshot: {'pid': 6, 'sweeper_tid': 30, 'busy_ms_threshold': 5.0, 'result': 'captured', 'frozen_with_sigstop': True, 'trigger_epoch_s': 1793148408.6872537, 'sweeper_cpu_ms_in_last_10ms': 5.41, 'freeze_latency_ms': 0.06, 'attach_done_ms_after_trigger': 97.7, 'process_paused_ms': 229.4}

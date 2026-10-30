@@ -1,0 +1,60 @@
+diff --git a/jstests/noPassthrough/profile_operation_metrics.js b/jstests/noPassthrough/profile_operation_metrics.js
+index c8ba22c52cb6d..a41f36227c04e 100644
+--- a/jstests/noPassthrough/profile_operation_metrics.js
++++ b/jstests/noPassthrough/profile_operation_metrics.js
+@@ -683,10 +683,9 @@ const operations = [
+         },
+         profileFilter: {op: 'insert', 'command.insert': collName},
+         profileAssert: (db, profileDoc) => {
+-            // Insert should not perform any reads.
+             assert.eq(profileDoc.docBytesRead, 0);
+             assert.eq(profileDoc.docUnitsRead, 0);
+-            // Reads the index entry for 'a' to determine uniqueness.
++            // The insert will perform a read to ensure uniqueness of 'a'.
+             assert.eq(profileDoc.idxEntryBytesRead, 6);
+             assert.eq(profileDoc.idxEntryUnitsRead, 1);
+             assert.eq(profileDoc.cursorSeeks, 1);
+@@ -794,7 +793,7 @@ const operations = [
+                 assert.gte(profileDoc.docUnitsRead, 9);
+                 assert.gte(profileDoc.cursorSeeks, 4);
+             }
+-            // Reads index entries on '_id' for the lookup and 'a' to ensure uniqueness.
++            // Reads index entries on '_id' and 'a' to ensure uniqueness.
+             assert.eq(profileDoc.idxEntryBytesRead, 10);
+             assert.eq(profileDoc.idxEntryUnitsRead, 2);
+             if (FixtureHelpers.isReplSet(db)) {
+diff --git a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+index d3da10b5d3c2d..78ef755ffb757 100644
+--- a/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
++++ b/src/mongo/db/storage/wiredtiger/wiredtiger_index.cpp
+@@ -1407,13 +1407,13 @@ bool WiredTigerIndexUnique::_keyExists(OperationContext* opCtx,
+     int cmp;
+     int ret = wiredTigerPrepareConflictRetry(opCtx, [&] { return c->search_near(c, &cmp); });
+ 
++    auto& metricsCollector = ResourceConsumption::MetricsCollector::get(opCtx);
++    metricsCollector.incrementOneCursorSeek();
++
+     if (ret == WT_NOTFOUND)
+         return false;
+     invariantWTOK(ret);
+ 
+-    auto& metricsCollector = ResourceConsumption::MetricsCollector::get(opCtx);
+-    metricsCollector.incrementOneCursorSeek();
+-
+     if (cmp == 0)
+         return true;
+ 
+@@ -1574,7 +1574,12 @@ StatusWith<bool> WiredTigerIndexUnique::_insert(OperationContext* opCtx,
+             fmt::format("WiredTigerIndexUnique::_insert: remove: {}; uri: {}", _indexName, _uri));
+ 
+         // Second phase looks up for existence of key to avoid insertion of duplicate key
+-        if (_keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId)) {
++        // The usage of 'prefix_key=true' enables an optimization that allows this search to return
++        // more quickly. See SERVER-56509.
++        c->reconfigure(c, "prefix_key=true");
++        ON_BLOCK_EXIT([c] { c->reconfigure(c, "prefix_key=false"); });
++        auto keyExists = _keyExists(opCtx, c, keyString.getBuffer(), sizeWithoutRecordId);
++        if (keyExists) {
+             auto key = KeyString::toBson(
+                 keyString.getBuffer(), sizeWithoutRecordId, _ordering, keyString.getTypeBits());
+             auto entry = _desc->getEntry();

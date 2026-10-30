@@ -1,0 +1,127 @@
+commit 30e753ec9ebd7804bc1bab62fb892aec33563e69 (mongodb/mongo, v4.4 branch)
+author: Luke Chen 2020-10-19T02:34:23Z
+url: https://github.com/mongodb/mongo/commit/30e753ec9ebd7804bc1bab62fb892aec33563e69
+
+Import wiredtiger: 03178d7f9c3e1db7383268bfb346bd9cb551da1c from branch mongodb-4.4
+
+ref: f4b6230119..03178d7f9c
+for: 4.4.2
+
+WT-6446       Rename *.i files into *_inline.h files
+WT-6490       Acquire snapshot for eviction threads
+WT-6624       Use transaction snapshot for applications performing eviction
+WT-6671       Save the checkpoint snapshot that is used to take checkpoint in the metadata
+WT-6691       Add file import repair functionality
+WT-6708       Repurpose oldest start txn to be newest txn in the aggregated time window
+WT-6725       Skip checking visibility for updates restored from disk
+WT-6741       Add check for supported data source on import
+WT-6746       Save base write gen in metadata during checkpoint
+WT-6761       Ignore stdout for test_rollback_to_stable10
+WT-6763       Fix freeing update on the chain when insert fail after inserting to the update chain
+WT-6767       Adding a new read timestamp config that allows it to be set older than the oldest timestamp
+WT-6783       Generate unique keys for table to ensure log records
+WT-6792       Update compatibility tests to test against mongodb-5.0 branch
+WT-6793       Organize code statistics Evergreen tasks
+WT-6797       Ensure minimum entries before short-circuiting
+WT-6806       Back off aggressive abort in random_directio
+
+files changed: 99 (+1472 -711)
+  src/third_party/wiredtiger/SConstruct (+0 -1)
+  src/third_party/wiredtiger/build_posix/Make.base (+0 -1)
+  src/third_party/wiredtiger/dist/api_data.py (+4 -2)
+  src/third_party/wiredtiger/dist/dist.py (+7 -3)
+  src/third_party/wiredtiger/dist/prototypes.py (+3 -3)
+  src/third_party/wiredtiger/dist/s_clang-format (+1 -1)
+  src/third_party/wiredtiger/dist/s_clang-format.list (+1 -1)
+  src/third_party/wiredtiger/dist/s_clang-scan.diff (+4 -4)
+  src/third_party/wiredtiger/dist/s_copyright (+1 -1)
+  src/third_party/wiredtiger/dist/s_define (+2 -2)
+  src/third_party/wiredtiger/dist/s_funcs (+1 -1)
+  src/third_party/wiredtiger/dist/s_function (+7 -7)
+  src/third_party/wiredtiger/dist/s_longlines (+1 -1)
+  src/third_party/wiredtiger/dist/s_stat (+1 -1)
+  src/third_party/wiredtiger/dist/s_string (+1 -1)
+  src/third_party/wiredtiger/dist/s_string.ok (+1 -0)
+  src/third_party/wiredtiger/dist/s_style (+1 -1)
+  src/third_party/wiredtiger/dist/s_tags (+2 -2)
+  src/third_party/wiredtiger/dist/s_typedef (+1 -1)
+  src/third_party/wiredtiger/dist/s_void (+1 -1)
+  src/third_party/wiredtiger/dist/s_whitespace (+1 -1)
+  src/third_party/wiredtiger/dist/stat_data.py (+2 -4)
+  src/third_party/wiredtiger/import.data (+1 -1)
+  src/third_party/wiredtiger/lang/java/java_doc.i (+0 -1)
+  src/third_party/wiredtiger/src/block/block_open.c (+7 -0)
+  src/third_party/wiredtiger/src/btree/bt_delete.c (+1 -1)
+  src/third_party/wiredtiger/src/btree/bt_import.c (+29 -6)
+  src/third_party/wiredtiger/src/btree/bt_vrfy.c (+1 -1)
+  src/third_party/wiredtiger/src/btree/row_modify.c (+5 -3)
+  src/third_party/wiredtiger/src/config/config.c (+14 -0)
+  src/third_party/wiredtiger/src/config/config_def.c (+4 -4)
+  src/third_party/wiredtiger/src/conn/conn_handle.c (+3 -0)
+  src/third_party/wiredtiger/src/evict/evict_lru.c (+8 -1)
+  src/third_party/wiredtiger/src/evict/evict_page.c (+69 -5)
+  src/third_party/wiredtiger/src/include/bitstring_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/block_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/btmem.h (+11 -9)
+  src/third_party/wiredtiger/src/include/btree_cmp_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/btree_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/buf_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/cache_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/cell_inline.h (+8 -9)
+  src/third_party/wiredtiger/src/include/column_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/config.h (+27 -28)
+  src/third_party/wiredtiger/src/include/connection.h (+8 -0)
+  src/third_party/wiredtiger/src/include/ctype_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/cursor_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/extern.h (+3 -1)
+  src/third_party/wiredtiger/src/include/intpack_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/log_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/meta.h (+12 -5)
+  src/third_party/wiredtiger/src/include/misc_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/mutex_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/os_fhandle_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/os_fs_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/os_fstream_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/packing_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/reconcile.h (+2 -2)
+  src/third_party/wiredtiger/src/include/reconcile_inline.h (+5 -5)
+  src/third_party/wiredtiger/src/include/serial_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/session.h (+25 -24)
+  src/third_party/wiredtiger/src/include/stat.h (+2 -4)
+  src/third_party/wiredtiger/src/include/time_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/timestamp.h (+13 -2)
+  src/third_party/wiredtiger/src/include/timestamp_inline.h (+42 -30)
+  src/third_party/wiredtiger/src/include/txn.h (+4 -3)
+  src/third_party/wiredtiger/src/include/txn_inline.h (+0 -0)
+  src/third_party/wiredtiger/src/include/wiredtiger.in (+111 -126)
+  src/third_party/wiredtiger/src/include/wt_internal.h (+23 -23)
+  src/third_party/wiredtiger/src/meta/meta_ckpt.c (+30 -7)
+  src/third_party/wiredtiger/src/reconcile/rec_visibility.c (+17 -2)
+  src/third_party/wiredtiger/src/schema/schema_create.c (+16 -10)
+  src/third_party/wiredtiger/src/session/session_api.c (+15 -76)
+  src/third_party/wiredtiger/src/support/stat.c (+7 -13)
+  src/third_party/wiredtiger/src/support/timestamp.c (+7 -7)
+  src/third_party/wiredtiger/src/txn/txn.c (+28 -10)
+  src/third_party/wiredtiger/src/txn/txn_recover.c (+96 -0)
+  src/third_party/wiredtiger/src/txn/txn_timestamp.c (+15 -4)
+  src/third_party/wiredtiger/src/utilities/util.h (+0 -1)
+  src/third_party/wiredtiger/src/utilities/util_import.c (+0 -46)
+  src/third_party/wiredtiger/src/utilities/util_main.c (+1 -10)
+  src/third_party/wiredtiger/test/csuite/Makefile.am (+0 -3)
+  src/third_party/wiredtiger/test/csuite/import/smoke.sh (+0 -113)
+  src/third_party/wiredtiger/test/csuite/random_directio/main.c (+3 -16)
+  src/third_party/wiredtiger/test/csuite/random_directio/util.c (+3 -16)
+  src/third_party/wiredtiger/test/csuite/random_directio/util.h (+1 -1)
+  src/third_party/wiredtiger/test/evergreen.yml (+14 -22)
+  src/third_party/wiredtiger/test/evergreen/compatibility_test_for_releases.sh (+2 -2)
+  src/third_party/wiredtiger/test/format/failure_configs/CONFIG.WT-6725 (+102 -0)
+  src/third_party/wiredtiger/test/suite/test_bug019.py (+16 -8)
+  src/third_party/wiredtiger/test/suite/test_checkpoint_snapshot01.py (+83 -0)
+  src/third_party/wiredtiger/test/suite/test_import05.py (+12 -4)
+  src/third_party/wiredtiger/test/suite/test_import06.py (+156 -0)
+  src/third_party/wiredtiger/test/suite/test_import07.py (+73 -0)
+  src/third_party/wiredtiger/test/suite/test_rollback_to_stable10.py (+3 -0)
+  src/third_party/wiredtiger/test/suite/test_timestamp21.py (+97 -0)
+  src/third_party/wiredtiger/test/suite/test_txn24.py (+127 -0)
+  src/third_party/wiredtiger/test/suite/test_util03.py (+51 -0)
+  src/third_party/wiredtiger/test/suite/wttest.py (+16 -6)

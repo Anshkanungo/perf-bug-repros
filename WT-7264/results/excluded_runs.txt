@@ -1,0 +1,10 @@
+# Runs left out of results/summary.md, with the reason. They stay in results/runs/ for inspection.
+# The host (an M1 Pro laptop on battery) went to sleep with its lid closed at 23:59:29 EDT, had a 45 s
+# maintenance wake 00:04:39-00:05:24, and slept again until 00:15:20 (pmset -g log). Docker Desktop's VM is
+# frozen while the host sleeps. Rule (PLAN.md change 5): a run whose insert phase overlaps the sleep, or that
+# starts within 60 s after the wake, is excluded and repeated at the end of the campaign.
+R3-4.4.2-W0: host slept 148 s into the insert phase (VM frozen 5 min; the cap fired at 459 s instead of 300 s)
+R3-4.4.1-W0: host slept 3 s into the insert phase (10 min)
+B3-4.2.24-W0: started 6 s after the host woke from 10 min of sleep
+RS1-4.4.2-W1: started 23 s after the host woke from 10 min of sleep
+RS2-4.4.2-W1: aborted at 00:22 EDT (about 1 min in) when the work was paused for the night; partial data kept

@@ -1,0 +1,85 @@
+{
+ "label": "C1-5.0.33-W1-off-nonunique",
+ "workload": "bruce",
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "prefix_search": false,
+ "sync_start": true,
+ "non_unique": true,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824,
+ "capped": false,
+ "cap_s": 300,
+ "insert_phase_s": 3.65,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.065,
+  "p90": 0.11,
+  "p99": 0.154,
+  "max": 0.193
+ },
+ "longest_call_s": 0.193,
+ "stalled_calls": 0,
+ "stalled_threads": 0,
+ "stalled": false,
+ "stalls": [],
+ "thread_end_s": {
+  "median": 3.513,
+  "max": 3.649
+ },
+ "straggler_gap_s": 0.14,
+ "first_call_s": {
+  "median": 0.0695,
+  "max": 0.139
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 0.0,
+  "hs_inserts": 0.0,
+  "app_evicted": 10.0,
+  "forced_evict": 770.0,
+  "pages_read": 95.0,
+  "search_near": 0.0,
+  "next": 0.0,
+  "prev": 1.0,
+  "skip_next": 0.0,
+  "skip_prev": 0.0,
+  "prefix_exits": 0.0,
+  "inserts": 2000000.0,
+  "ckpts": 0.0
+ },
+ "hs_misses": 0.0,
+ "hs_misses_stall_share": null,
+ "entries_skipped": 0,
+ "checkpoints": {
+  "checkpoints_completed": 0.0,
+  "seconds_with_checkpoint_running": 0,
+  "checkpoint_running_during_stalls": false,
+  "last_checkpoint_ms_max": 0.0
+ },
+ "alone_window": null,
+ "docker": {
+  "other_cpu_median_pct": 270.71000000000004,
+  "other_cpu_peak_pct": 521.73,
+  "other_samples": 6,
+  "mongod_cpu_peak_pct": 554.69
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 521.73,
+ "noisy_onset": true,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "Battery Power",
+  "end": "Battery Power",
+  "low_power_mode_start": 1,
+  "how": "recorded by run.sh",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": false,
+ "stall_type": "none",
+ "slow_inserts_ge_1s": []
+}

@@ -1,0 +1,12 @@
+date_utc: 2026-10-28T01:35:02Z
+kernel: 7.0.14-linuxkit aarch64
+perf: perf version 6.1.190
+gdb: GNU gdb (Debian 13.1-3) 13.1
+perf_event_paranoid: 2 (bypassed: privileged container)
+mongod pid (in this pid namespace): 8
+mongod exe: /usr/bin/mongod
+mongod build-id: b24bfa44ad39ef4efe533343362d549fdbb5cf36
+mongod sections: .eh_frame .gnu_debuglink .symtab 
+threads: 136
+event: cpu-clock  freq: 999  callgraph: fp  secs: 100
+sweeper tid: 34

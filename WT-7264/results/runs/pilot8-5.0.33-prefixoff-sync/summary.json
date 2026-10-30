@@ -1,0 +1,128 @@
+{
+ "label": "pilot8-5.0.33-prefixoff-sync",
+ "workload": "bruce",
+ "version": "5.0.33",
+ "gitVersion": "20315d70b93ab896168da81e4ed502d859ad0511",
+ "prefix_search": false,
+ "sync_start": true,
+ "non_unique": false,
+ "profiled": false,
+ "cache_gb": 1,
+ "wt_cache_max_bytes": 1073741824,
+ "capped": false,
+ "cap_s": 600,
+ "insert_phase_s": 352.46,
+ "threads": 20,
+ "calls": 1000,
+ "calls_returned": 1000,
+ "docs_inserted_server": 2000000.0,
+ "call_latency_s": {
+  "p50": 0.123,
+  "p90": 0.259,
+  "p99": 0.4143199999999997,
+  "max": 348.352
+ },
+ "longest_call_s": 348.352,
+ "stalled_calls": 2,
+ "stalled_threads": 2,
+ "stalled": true,
+ "stalls": [
+  {
+   "thread": 5,
+   "batch": 0,
+   "start_s": 3.002,
+   "dur_s": 348.35,
+   "returned": true
+  },
+  {
+   "thread": 7,
+   "batch": 0,
+   "start_s": 3.001,
+   "dur_s": 235.3,
+   "returned": true
+  }
+ ],
+ "thread_end_s": {
+  "median": 10.747,
+  "max": 352.456
+ },
+ "straggler_gap_s": 341.71,
+ "first_call_s": {
+  "median": 0.184,
+  "max": 348.352
+ },
+ "counters": {
+  "hs_reads": 0.0,
+  "hs_misses": 625541499.0,
+  "hs_inserts": 1.0,
+  "app_evicted": 302.0,
+  "forced_evict": 403.0,
+  "pages_read": 2703.0,
+  "search_near": 629541529.0,
+  "next": 629742539.0,
+  "prev": 483719330.0,
+  "skip_next": 475728393.0,
+  "skip_prev": 266751434.0,
+  "prefix_exits": 0.0,
+  "inserts": 2000000.0,
+  "ckpts": 5.0
+ },
+ "hs_misses": 625541499.0,
+ "hs_misses_stall_share": 0.9965822906978711,
+ "entries_skipped": 742479827.0,
+ "checkpoints": {
+  "checkpoints_completed": 5.0,
+  "seconds_with_checkpoint_running": 1,
+  "checkpoint_running_during_stalls": true,
+  "last_checkpoint_ms_max": 129.0
+ },
+ "alone_window": {
+  "window_s": [
+   12.6,
+   351.4
+  ],
+  "conn_threads_ge90_median": 2.0,
+  "mongod_cpu_cores_median": 2.0
+ },
+ "docker": {
+  "other_cpu_median_pct": 7.58,
+  "other_cpu_peak_pct": 778.02,
+  "other_samples": 353,
+  "mongod_cpu_peak_pct": 712.85
+ },
+ "noisy": true,
+ "other_cpu_peak_first10s_pct": 128.67,
+ "noisy_onset": false,
+ "host_stream_max_gap_s": 1.0,
+ "power": {
+  "start": "Battery Power",
+  "end": "Battery Power",
+  "how": "pmset -g log",
+  "battery_tag_inside_run": false
+ },
+ "whole_run_on_ac": false,
+ "stall_type": "history-store walk",
+ "slow_inserts_ge_1s": [
+  {
+   "ms": 2245,
+   "ninserted": 1000,
+   "ctx": "conn8",
+   "bytesRead": 2391797,
+   "cacheWaitMicros": 485500
+  },
+  {
+   "ms": 235268,
+   "ninserted": 1000,
+   "ctx": "conn15",
+   "bytesRead": 13564482,
+   "cacheWaitMicros": 1484666
+  },
+  {
+   "ms": 348329,
+   "ninserted": 1000,
+   "ctx": "conn18",
+   "bytesRead": 19692493,
+   "cacheWaitMicros": 1334751
+  }
+ ]
+}
